@@ -1,13 +1,17 @@
 package pe.gob.casadelaliteratura.biblioteca.services.interfaces.libro;
 
-import pe.gob.casadelaliteratura.biblioteca.dtos.otros.MensajeDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.coleccion.ColeccionDataDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.coleccion.ColeccionDataSimpleDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.libro.coleccion.ColeccionRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.libro.coleccion.ColeccionResponseDto;
+import pe.gob.casadelaliteratura.biblioteca.models.libro.Sala;
 
 import java.util.List;
 
 public interface IColeccionService {
-    List<ColeccionDataDto> getAll();
-    ColeccionDataDto getByCod(String codColeccion);
-    MensajeDto<String> saveOrUpdate(String codColeccion, ColeccionDataSimpleDto datosColeccion);
+
+    MensajeDto<String> saveOrUpdate(String codColeccion, ColeccionRequestDto datosColeccion);
+    List<ColeccionResponseDto> getAllColecciones();
+    ColeccionResponseDto getByCodColeccion(String codColeccion);
+    List<ColeccionResponseDto> getBySala(Sala sala);
+
 }

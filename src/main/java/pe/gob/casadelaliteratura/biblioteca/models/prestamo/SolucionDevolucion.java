@@ -2,6 +2,7 @@ package pe.gob.casadelaliteratura.biblioteca.models.prestamo;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 
 import java.time.LocalDate;
 
@@ -25,7 +26,11 @@ public class SolucionDevolucion {
     private String detalle;
 
     @OneToOne
-    @JoinColumn(name = "id_problema_devolucion", nullable = false)
+    @JoinColumn(name = "fk_cod_problema_devolucion", nullable = false)
     private ProblemaDevolucion problemaDevolucion;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_cod_usuario", nullable = false)
+    private Usuario usuario;
 
 }

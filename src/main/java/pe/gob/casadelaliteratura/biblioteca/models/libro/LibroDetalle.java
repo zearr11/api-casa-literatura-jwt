@@ -28,15 +28,15 @@ public class LibroDetalle {
     private Integer year;
 
     @ManyToOne
-    @JoinColumn(name = "id_coleccion", nullable = false)
+    @JoinColumn(name = "fk_cod_coleccion", nullable = false)
     private Coleccion coleccion;
 
     @ManyToOne
-    @JoinColumn(name = "id_autor", nullable = false)
+    @JoinColumn(name = "fk_cod_autor", nullable = false)
     private Autor autor;
 
     @ManyToOne
-    @JoinColumn(name = "id_editorial", nullable = false)
+    @JoinColumn(name = "fk_cod_editorial", nullable = false)
     private Editorial editorial;
 
 }

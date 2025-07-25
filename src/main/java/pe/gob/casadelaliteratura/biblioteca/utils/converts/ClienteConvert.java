@@ -1,84 +1,95 @@
 package pe.gob.casadelaliteratura.biblioteca.utils.converts;
 
-import org.springframework.web.multipart.MultipartFile;
-import pe.gob.casadelaliteratura.biblioteca.dtos.cliente.ClienteData2Dto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.cliente.ClienteDataDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.cliente.complements.ClienteDataContactoDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.cliente.complements.ClienteDataDocDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.cliente.complements.ClienteDataPersonalDto;
-import pe.gob.casadelaliteratura.biblioteca.models.cliente.Cliente;
-import pe.gob.casadelaliteratura.biblioteca.models.cliente.Documentacion;
-
-import java.io.IOException;
+import pe.gob.casadelaliteratura.biblioteca.dtos.persona.cliente.ClienteRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.persona.cliente.ClienteResponseDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.persona.complements.DataContactoDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.persona.complements.DataUrlDocsDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.persona.complements.DataPersonalDto;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Persona;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Cliente;
+import pe.gob.casadelaliteratura.biblioteca.repositories.persona.projections.ClienteProjection;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.TipoDoc;
 
 public class ClienteConvert {
 
-    public static ClienteDataDto modelToDto(Cliente cliente) {
+    public static ClienteResponseDto clienteToClienteDataDto(Cliente cliente) {
 
-        ClienteDataPersonalDto dataPersonal = new ClienteDataPersonalDto(
+        DataPersonalDto dataPersonal = new DataPersonalDto(
+                cliente.getPersona().getNombres(),
+                cliente.getPersona().getApellidos(),
+                cliente.getPersona().getTipoDoc(),
+                cliente.getPersona().getNumeroDoc(),
+                cliente.getPersona().getFechaNacimiento(),
+                cliente.getPersona().getDireccion()
+        );
+
+        DataContactoDto dataContacto = new DataContactoDto(
+                cliente.getPersona().getNumeroPrincipal(),
+                cliente.getNumeroSecundario(),
+                cliente.getPersona().getCorreo()
+        );
+
+        DataUrlDocsDto dataDocumentacion = new DataUrlDocsDto(
+                cliente.getUrlDocIdentidad(),
+                cliente.getUrlRecServicio()
+        );
+
+        return new ClienteResponseDto(
+                cliente.getCodCliente(), dataPersonal, dataContacto, dataDocumentacion
+        );
+    }
+
+    public static ClienteResponseDto clienteProjectionToClienteDataDto(ClienteProjection cliente) {
+
+        DataPersonalDto dataPersonal = new DataPersonalDto(
                 cliente.getNombres(),
                 cliente.getApellidos(),
-                cliente.getTipoDoc(),
+                TipoDoc.valueOf(cliente.getTipoDoc()),
                 cliente.getNumeroDoc(),
                 cliente.getFechaNacimiento(),
                 cliente.getDireccion()
         );
 
-        ClienteDataContactoDto dataContacto = new ClienteDataContactoDto(
+        DataContactoDto dataContacto = new DataContactoDto(
                 cliente.getNumeroPrincipal(),
                 cliente.getNumeroSecundario(),
                 cliente.getCorreo()
         );
 
-        ClienteDataDocDto dataDocumentacion = new ClienteDataDocDto(
-                cliente.getDocumentacion().getImgDocIdentidad(),
-                cliente.getDocumentacion().getImgRecServicio()
+        DataUrlDocsDto dataDocumentacion = new DataUrlDocsDto(
+                cliente.getUrlDocIdentidad(),
+                cliente.getUrlRecServicio()
         );
 
-        return new ClienteDataDto(cliente.getCodCliente(), dataPersonal, dataContacto, dataDocumentacion);
+        return new ClienteResponseDto(
+                cliente.getCodCliente(), dataPersonal, dataContacto, dataDocumentacion
+        );
     }
 
-    public static Cliente dto2ToCliente(ClienteData2Dto nuevoCliente,
-                                        MultipartFile imgDocIden,
-                                        MultipartFile imgRecServ) {
-        try {
-            return Cliente.builder()
-                    .nombres(nuevoCliente.getDatosPersonales().getNombres())
-                    .apellidos(nuevoCliente.getDatosPersonales().getApellidos())
-                    .tipoDoc(nuevoCliente.getDatosPersonales().getTipoDocumento())
-                    .numeroDoc(nuevoCliente.getDatosPersonales().getNumeroDoc())
-                    .fechaNacimiento(nuevoCliente.getDatosPersonales().getFechaNacimiento())
-                    .direccion(nuevoCliente.getDatosPersonales().getDireccion())
-                    .numeroPrincipal(nuevoCliente.getDatosContacto().getNumeroPrincipal())
-                    .numeroSecundario(nuevoCliente.getDatosContacto().getNumeroSecundario())
-                    .correo(nuevoCliente.getDatosContacto().getCorreo())
-                    .documentacion(
-                            Documentacion.builder()
-                                    .imgDocIdentidad(imgDocIden.getBytes())
-                                    .imgRecServicio(imgRecServ.getBytes())
-                                    .build()
-                    )
-                    .build();
-        } catch (IOException e) {
-            throw new RuntimeException("Error con las imágenes cargadas");
-        }
+    public static Cliente clienteData2DtoToCliente(ClienteRequestDto nuevoCliente,
+                                                   String urlDocIden, String urlRecServ) {
+
+        String numSec = nuevoCliente.getDatosContacto().getNumeroSecundario() != null ?
+                nuevoCliente.getDatosContacto().getNumeroSecundario() : "";
+
+        return Cliente.builder()
+                .urlDocIdentidad(urlDocIden)
+                .urlRecServicio(urlRecServ)
+                .numeroSecundario(numSec)
+                .build();
     }
 
-    public static Cliente setCliente(Cliente antiguo, Cliente nuevo) {
+    public static Cliente setClienteData2DtoToCliente(ClienteRequestDto datosCliente, String urlDocIden,
+                                                      String urlRecServ, Cliente cliente, Persona persona) {
 
-        antiguo.setNombres(nuevo.getNombres());
-        antiguo.setApellidos(nuevo.getApellidos());
-        antiguo.setTipoDoc(nuevo.getTipoDoc());
-        antiguo.setNumeroDoc(nuevo.getNumeroDoc());
-        antiguo.setFechaNacimiento(nuevo.getFechaNacimiento());
-        antiguo.setDireccion(nuevo.getDireccion());
-        antiguo.setNumeroPrincipal(nuevo.getNumeroPrincipal());
-        antiguo.setNumeroSecundario(nuevo.getNumeroSecundario());
-        antiguo.setCorreo(nuevo.getCorreo());
-        antiguo.getDocumentacion().setImgRecServicio(nuevo.getDocumentacion().getImgRecServicio());
-        antiguo.getDocumentacion().setImgDocIdentidad(nuevo.getDocumentacion().getImgDocIdentidad());
+        String numSec = datosCliente.getDatosContacto().getNumeroSecundario() != null ?
+                datosCliente.getDatosContacto().getNumeroSecundario() : "";
 
-        return antiguo;
+        cliente.setNumeroSecundario(numSec);
+        cliente.setUrlDocIdentidad(urlDocIden);
+        cliente.setUrlRecServicio(urlRecServ);
+        cliente.setPersona(persona);
+
+        return cliente;
     }
-
 }

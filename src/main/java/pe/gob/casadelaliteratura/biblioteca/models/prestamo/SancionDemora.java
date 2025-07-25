@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pe.gob.casadelaliteratura.biblioteca.models.cliente.Cliente;
-
 import java.time.LocalDate;
 
 @Entity
@@ -31,11 +29,7 @@ public class SancionDemora {
     private LocalDate fechaFinSancion;
 
     @OneToOne
-    @JoinColumn(name = "id_devolucion", nullable = false)
+    @JoinColumn(name = "fk_cod_devolucion", nullable = false)
     private Devolucion devolucion;
-
-    @ManyToOne
-    @JoinColumn(name = "id_cliente", nullable = false)
-    private Cliente cliente;
 
 }

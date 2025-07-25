@@ -6,7 +6,6 @@ import pe.gob.casadelaliteratura.biblioteca.models.libro.Libro;
 import pe.gob.casadelaliteratura.biblioteca.repositories.libro.projections.LibroCopiasProjection;
 import pe.gob.casadelaliteratura.biblioteca.repositories.libro.projections.LibroResumenProjection;
 import java.util.List;
-import java.util.Optional;
 
 public interface LibroRepository extends JpaRepository<Libro, Long> {
 
@@ -18,11 +17,11 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
                SUM(CASE WHEN l.estado = 'PRESTADO' THEN 1 ELSE 0 END) AS cantidad_prestados,
                SUM(CASE WHEN l.estado = 'SOLO_PARA_LECTURA_EN_SALA' THEN 1 ELSE 0 END) AS cantidad_solo_lectura_en_sala
         FROM libro_detalle ld
-        LEFT JOIN libro l ON l.id_libro_detalle = ld.cod_libro_detalle
-        INNER JOIN autor a ON a.cod_autor = ld.id_autor
-        INNER JOIN editorial e ON e.cod_editorial = ld.id_editorial
-        INNER JOIN coleccion c ON c.cod_coleccion = ld.id_coleccion
-        INNER JOIN sala s ON s.cod_sala = c.id_sala
+        LEFT JOIN libro l ON l.fk_cod_libro_detalle = ld.cod_libro_detalle
+        INNER JOIN autor a ON a.cod_autor = ld.fk_cod_autor
+        INNER JOIN editorial e ON e.cod_editorial = ld.fk_cod_editorial
+        INNER JOIN coleccion c ON c.cod_coleccion = ld.fk_cod_coleccion
+        INNER JOIN sala s ON s.cod_sala = c.fk_cod_sala
         WHERE (:codigo IS NULL OR ld.cod_libro_detalle = :codigo)
           AND(:titulo IS NULL OR ld.titulo LIKE %:titulo%)
           AND (:isbn IS NULL OR ld.isbn LIKE %:isbn%)
@@ -56,22 +55,22 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
                    ELSE NULL
                END AS fecha_vencimiento
         FROM libro_detalle ld
-        INNER JOIN libro l ON l.id_libro_detalle = ld.cod_libro_detalle
-        INNER JOIN autor a ON a.cod_autor = ld.id_autor
-        INNER JOIN editorial e ON e.cod_editorial = ld.id_editorial
-        INNER JOIN coleccion c ON c.cod_coleccion = ld.id_coleccion
-        INNER JOIN sala s ON s.cod_sala = c.id_sala
-        LEFT JOIN detalle_prestamo dp ON dp.id_libro = l.id_libro
-        LEFT JOIN prestamo p ON p.cod_prestamo = dp.id_prestamo
+        INNER JOIN libro l ON l.fk_cod_libro_detalle = ld.cod_libro_detalle
+        INNER JOIN autor a ON a.cod_autor = ld.fk_cod_autor
+        INNER JOIN editorial e ON e.cod_editorial = ld.fk_cod_editorial
+        INNER JOIN coleccion c ON c.cod_coleccion = ld.fk_cod_coleccion
+        INNER JOIN sala s ON s.cod_sala = c.fk_cod_sala
+        LEFT JOIN detalle_prestamo dp ON dp.fk_cod_libro = l.id_libro
+        LEFT JOIN prestamo p ON p.cod_prestamo = dp.fk_cod_prestamo
         LEFT JOIN (
-            SELECT r1.id_prestamo, r1.nueva_fecha_vencimiento
+            SELECT r1.fk_cod_prestamo, r1.nueva_fecha_vencimiento
             FROM renovacion r1
             INNER JOIN (
-                SELECT id_prestamo, MAX(fecha_solicitud) AS max_fecha
+                SELECT fk_cod_prestamo, MAX(fecha_solicitud) AS max_fecha
                 FROM renovacion
-                GROUP BY id_prestamo
-            ) r2 ON r1.id_prestamo = r2.id_prestamo AND r1.fecha_solicitud = r2.max_fecha
-        ) r ON r.id_prestamo = p.cod_prestamo
+                GROUP BY fk_cod_prestamo
+            ) r2 ON r1.fk_cod_prestamo = r2.fk_cod_prestamo AND r1.fecha_solicitud = r2.max_fecha
+        ) r ON r.fk_cod_prestamo = p.cod_prestamo
         WHERE (:codigo IS NULL OR ld.cod_libro_detalle = :codigo)
           AND (:isbn IS NULL OR ld.isbn LIKE %:isbn%)
           AND (:titulo IS NULL OR ld.titulo LIKE %:titulo%)
@@ -92,13 +91,13 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
     @Query(value = """
             SELECT COALESCE(MAX(numero_copia), 0) AS n_copia_mayor
             FROM libro
-            WHERE id_libro_detalle = :codigoLibDet;
+            WHERE fk_cod_libro_detalle = :codigoLibDet;
            """, nativeQuery = true)
     Integer getNumeroCopiaMayor(String codigoLibDet);
 
     @Query(value = """
             SELECT id_libro FROM libro
-            WHERE id_libro_detalle = :codLibro AND
+            WHERE fk_cod_libro_detalle = :codLibro AND
             numero_copia = :numCopia
             """, nativeQuery = true)
     Long findLibroByCodAndNumCopia(String codLibro, Integer numCopia);

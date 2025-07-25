@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.MedioSolicitud;
-
 import java.time.LocalDate;
 
 @Entity
@@ -32,7 +32,11 @@ public class Renovacion {
     private MedioSolicitud medioSolicitud;
 
     @ManyToOne
-    @JoinColumn(name = "id_prestamo", nullable = false)
+    @JoinColumn(name = "fk_cod_prestamo", nullable = false)
     private Prestamo prestamo;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_cod_usuario", nullable = false)
+    private Usuario usuario;
 
 }

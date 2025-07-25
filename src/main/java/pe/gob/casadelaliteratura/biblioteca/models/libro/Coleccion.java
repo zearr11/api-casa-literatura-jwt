@@ -22,7 +22,7 @@ public class Coleccion {
     private String descripcion;
 
     @ManyToOne
-    @JoinColumn(name = "id_sala", nullable = false)
+    @JoinColumn(name = "fk_cod_sala", nullable = false)
     private Sala sala;
 
 }

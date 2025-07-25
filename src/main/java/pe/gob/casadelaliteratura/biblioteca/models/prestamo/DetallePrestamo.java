@@ -20,11 +20,11 @@ public class DetallePrestamo {
     private Long idDetallePrestamo;
 
     @ManyToOne
-    @JoinColumn(name = "id_prestamo", nullable = false)
+    @JoinColumn(name = "fk_cod_prestamo", nullable = false)
     private Prestamo prestamo;
 
     @ManyToOne
-    @JoinColumn(name = "id_libro", nullable = false)
+    @JoinColumn(name = "fk_cod_libro", nullable = false)
     private Libro libro;
 
 }

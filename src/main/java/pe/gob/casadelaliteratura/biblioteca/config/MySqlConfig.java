@@ -15,11 +15,11 @@ public class MySqlConfig implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM documentacion", Integer.class);
+        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM persona", Integer.class);
 
         if (count != null && count == 0) {
 
-            // Triggers para agregar automaticamente los 14 dias de prestamo
+            // (Triggers)
             crearTriggerSet14diasPrestamo();
             crearTriggerSet14diasRenovacion();
             crearTriggerSetStateDetallePrestamo();
@@ -28,8 +28,9 @@ public class MySqlConfig implements CommandLineRunner {
             insertarCodigosIniciales();
 
             // Carga de Data
-            insertarDocumentacion();
+            insertarPersonas();
             insertarClientes();
+            insertarUsuarios();
             insertarSalas();
             insertarColecciones();
             insertarEditoriales();
@@ -41,6 +42,8 @@ public class MySqlConfig implements CommandLineRunner {
         }
     }
 
+    // Se ejecuta antes de cada insert en la tabla prestamo.
+    // Asigna automaticamente la fecha de vencimiento de cada prestamo registrado (14 dias).
     private void crearTriggerSet14diasPrestamo() {
         jdbcTemplate.execute("""
             CREATE TRIGGER trg_set_fecha_vencimiento_prestamo
@@ -54,6 +57,9 @@ public class MySqlConfig implements CommandLineRunner {
         """);
     }
 
+    // Se ejecuta antes de cada insert en la tabla renovacion.
+    // En caso de renovacion, toma la última fecha de vencimiento que se tenga registrada
+    // y asigna ese valor en la tabla renovacion.
     private void crearTriggerSet14diasRenovacion() {
         jdbcTemplate.execute("""
             CREATE TRIGGER trg_set_fecha_vencimiento_renovacion
@@ -65,13 +71,13 @@ public class MySqlConfig implements CommandLineRunner {
                 SELECT MAX(nueva_fecha_vencimiento)
                 INTO fecha_actual_vencimiento
                 FROM renovacion
-                WHERE id_prestamo = NEW.id_prestamo;
+                WHERE fk_cod_prestamo = NEW.fk_cod_prestamo;
 
                 IF fecha_actual_vencimiento IS NULL THEN
                     SELECT fecha_vencimiento
                     INTO fecha_actual_vencimiento
                     FROM prestamo
-                    WHERE id_prestamo = NEW.id_prestamo;
+                    WHERE codPrestamo = NEW.fk_cod_prestamo;
                 END IF;
 
                 IF NEW.nueva_fecha_vencimiento IS NULL THEN
@@ -81,6 +87,8 @@ public class MySqlConfig implements CommandLineRunner {
         """);
     }
 
+    // Se ejecuta antes de cada insert en la tabla detalle_prestamo.
+    // Actualiza el estado a 'PRESTADO' en cada libro que se solicito su prestamo.
     private void crearTriggerSetStateDetallePrestamo() {
         jdbcTemplate.execute("""
                 CREATE TRIGGER trg_update_estado_libro
@@ -89,15 +97,19 @@ public class MySqlConfig implements CommandLineRunner {
                 BEGIN
                     UPDATE libro SET
                     estado = 'PRESTADO'
-                    WHERE id_libro = NEW.id_libro;
+                    WHERE id_libro = NEW.fk_cod_libro;
                 END
                 """);
     }
 
+    // Carga los valores iniciales de la tabla almacen_codigos, la cual
+    // almacena los ultimos id's de algunas tablas. Otras tablas generan sus
+    // propios id's al ser incrementales.
     private void insertarCodigosIniciales() {
         jdbcTemplate.update("""
                 INSERT INTO almacen_codigos (codigo, numero)
                 VALUES
+                ('PA', 14), ('US', 4),
                 ('CL', 11), ('SL', 3), ('CC', 17),
                 ('AT', 11), ('ED', 11), ('LB', 21),
                 ('DV', 1), ('PS', 8), ('PD', 1),
@@ -105,71 +117,99 @@ public class MySqlConfig implements CommandLineRunner {
                 """);
     }
 
-    private void insertarDocumentacion() {
+    private void insertarPersonas() {
         jdbcTemplate.update("""
-                INSERT INTO documentacion(img_doc_identidad, img_rec_servicio) VALUES
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png')),
-                (LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\DNI_peruano.jpg'), LOAD_FILE('C:\\\\ProgramData\\\\MySQL\\\\MySQL Server 8.0\\\\Uploads\\\\recibo.png'));
-           """);
+                INSERT INTO persona (cod_persona, apellidos, correo, direccion, fecha_nacimiento, nombres, numero_doc, numero_principal, tipo_doc)
+                VALUES
+                ('PA00001', 'Ramírez Huamán', 'carlos.ramirez@example.com', 'Av. Los Álamos 123, San Juan de Lurigancho, Lima', '1995-04-15', 'Carlos Andrés', '12345678', '987654321', 'DNI'),
+                ('PA00002', 'Gonzales Quispe', 'mariana.gonzales@example.com', 'Jr. Ayacucho 456, Cercado de Lima, Lima', '1992-08-22', 'Mariana Luisa', '23456789', '912345678', 'DNI'),
+                ('PA00003', 'Torres Salazar', 'jorge.torres@example.com', 'Av. Brasil 789, Magdalena del Mar, Lima', '1988-03-09', 'Jorge Luis', '34567890', '987321456', 'DNI'),
+                ('PA00004', 'Flores Chávez', 'laura.flores@example.com', 'Calle Las Violetas 234, Surco, Lima', '1996-11-30', 'Laura Beatriz', '45678901', '911222333', 'DNI'),
+                ('PA00005', 'Morales Ríos', 'diego.morales@example.com', 'Av. Los Próceres 101, San Miguel, Lima', '1990-07-18', 'Diego Armando', '56789012', '923456789', 'DNI'),
+                ('PA00006', 'Vásquez Mendoza', 'elena.vasquez@example.com', 'Jr. Cahuide 321, Pueblo Libre, Lima', '1993-12-12', 'Elena Mercedes', '67890123', '934567890', 'DNI'),
+                ('PA00007', 'Rojas Cárdenas', 'mario.rojas@example.com', 'Av. La Marina 456, La Perla, Callao', '1987-02-25', 'Mario Javier', '78901234', '945678901', 'DNI'),
+                ('PA00008', 'Sánchez Paredes', 'sofia.sanchez@example.com', 'Calle Los Girasoles 145, Los Olivos, Lima', '1998-06-05', 'Sofía Isabel', '89012345', '956789012', 'DNI'),
+                ('PA00009', 'Delgado Núñez', 'andres.delgado@example.com', 'Av. Las Torres 654, Independencia, Lima', '1991-09-14', 'Andrés Felipe', '90123456', '967890123', 'DNI'),
+                ('PA00010', 'Pérez Romero', 'karla.perez@example.com', 'Jr. Moquegua 123, Breña, Lima', '1994-05-11', 'Karla Cecilia', '01234567', '978901234', 'DNI'),
+                ('PA00011', 'Chávez Soto', 'luis.chavez@example.com', 'Calle Arica 777, Barranco, Lima', '1989-10-20', 'Luis Enrique', '11223344', '989012345', 'DNI'),
+                ('PA00012', 'Castro León', 'valeria.castro@example.com', 'Av. Javier Prado 2222, San Borja, Lima', '1997-01-28', 'Valeria Fernanda', '22334455', '990123456', 'DNI'),
+                ('PA00013', 'Mendoza Campos', 'juan.mendoza@example.com', 'Jr. Tarapacá 555, Jesús María, Lima', '1985-04-03', 'Juan Manuel', '33445566', '901234567', 'DNI');
+                """);
     }
 
     private void insertarClientes() {
         jdbcTemplate.update("""
-                INSERT INTO cliente(cod_cliente, apellidos, correo, direccion, fecha_nacimiento, nombres, numero_doc, numero_principal, numero_secundario, tipo_doc, id_documentacion) VALUES
-                        ('CL00001', 'Ramírez Huamán', 'carlos.ramirez@example.com', 'Av. Los Álamos 123, San Juan de Lurigancho, Lima', '1995-04-15', 'Carlos Andrés', '12345678', '987654321', '912345678', 'DNI', 1),
-                        ('CL00002', 'Gonzales Rojas', 'ana.gonzales@example.com', 'Calle Las Rosas 456, Miraflores, Lima', '1992-08-20', 'Ana María', '87654321', '998877665', '987654320', 'DNI', 2),
-                        ('CL00003', 'Fernández López', 'jorge.fernandez@example.com', 'Jr. Amazonas 789, Trujillo, La Libertad', '1988-12-01', 'Jorge Luis', '11223344', '912345678', '987654322', 'DNI', 3),
-                        ('CL00004', 'Torres Meza', 'maria.torres@example.com', 'Av. Grau 1025, Piura', '1990-05-10', 'María Elena', '33445566', '987654323', '912345679', 'DNI', 4),
-                        ('CL00005', 'Vega Castillo', 'diego.vega@example.com', 'Calle Libertad 321, Cusco', '1993-07-19', 'Diego Armando', '55667788', '999888777', '911223344', 'DNI', 5),
-                        ('CL00006', 'Sánchez Quispe', 'luz.sanchez@example.com', 'Jr. San Martín 55, Cajamarca', '1991-09-09', 'Luz Milagros', '66778899', '966554433', '977665544', 'DNI', 6),
-                        ('CL00007', 'Paredes Inga', 'hugo.paredes@example.com', 'Av. El Sol 420, Huancayo', '1987-11-23', 'Hugo César', '77889900', '944556677', '911122233', 'DNI', 7),
-                        ('CL00008', 'Reyes Salas', 'veronica.reyes@example.com', 'Calle Unión 777, Arequipa', '1996-03-30', 'Verónica Alejandra', '88990011', '933445566', '922334455', 'DNI', 8),
-                        ('CL00009', 'Morales Díaz', 'luis.morales@example.com', 'Av. Túpac Amaru 1001, Iquitos', '1989-06-05', 'Luis Alberto', '99001122', '988776655', '933221100', 'DNI', 9),
-                        ('CL00010', 'Chávez Ramos', 'karla.chavez@example.com', 'Jr. Puno 200, Ayacucho', '1994-10-17', 'Karla Yessenia', '10111213', '911122233', '900011223', 'DNI', 10);
-            """);
+                INSERT INTO cliente(cod_cliente, numero_secundario, url_doc_identidad, url_rec_servicio, fk_cod_persona)
+                VALUES
+                ('CL00001', '912345678', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00001'),
+                ('CL00002', '913456789', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00002'),
+                ('CL00003', '914567890', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00003'),
+                ('CL00004', '915678901', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00004'),
+                ('CL00005', '916789012', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00005'),
+                ('CL00006', '917890123', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00006'),
+                ('CL00007', '918901234', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00007'),
+                ('CL00008', '919012345', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00008'),
+                ('CL00009', '920123456', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00009'),
+                ('CL00010', '921234567', 'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390652/biblioteca/i7mnysaohbdq57hphv1w.jpg',
+                'https://res.cloudinary.com/dgsgtffmx/image/upload/v1753390650/biblioteca/d2mhldldyr7yypusqxqf.png', 'PA00010');
+                """);
+    }
+
+    private void insertarUsuarios() {
+        jdbcTemplate.update("""
+                INSERT INTO usuario(cod_usuario, password, rol, fk_cod_persona, estado)
+                VALUES
+                ('US00001', '$2a$12$Sc44vAJoNoPcROJC6xkMTuideJWOuNjkdmpPrSn6zqCBM8BD1JxIG', 'ADMINISTRADOR', 'PA00011', 'ACTIVO'),
+                ('US00002', '$2a$12$Sc44vAJoNoPcROJC6xkMTuideJWOuNjkdmpPrSn6zqCBM8BD1JxIG', 'BIBLIOTECARIO', 'PA00012', 'ACTIVO'),
+                ('US00003', '$2a$12$Sc44vAJoNoPcROJC6xkMTuideJWOuNjkdmpPrSn6zqCBM8BD1JxIG', 'BIBLIOTECARIO', 'PA00013', 'INACTIVO');
+                """);
     }
 
     private void insertarSalas() {
         jdbcTemplate.update("""
-                INSERT INTO sala(cod_sala, nombre_sala) VALUES
+                INSERT INTO sala(cod_sala, nombre_sala)
+                VALUES
                 ('SL00001', 'Sala de Literatura Infantil Cota Carvallo'),
                 ('SL00002', 'Biblioteca Mario Vargas Llosa');
-        """);
+                """);
     }
 
     private void insertarColecciones() {
         jdbcTemplate.update("""
-                    INSERT INTO coleccion(cod_coleccion, descripcion, id_sala) VALUES
-                    ('CC00001', 'El Pájaro Niño', 'SL00001'),
-                    ('CC00002', 'Oshta y el duende', 'SL00001'),
-                    ('CC00003', 'Rutsí, el pequeño alucinado', 'SL00001'),
-                    ('CC00004', 'La flor del tiempo', 'SL00001'),
-                    ('CC00005', 'Mario Vargas Llosa', 'SL00002'),
-                    ('CC00006', 'Interdisciplinaria', 'SL00002'),
-                    ('CC00007', 'Lima y Mapa Literario', 'SL00002'),
-                    ('CC00008', 'Historieta y Novela Gráfica', 'SL00002'),
-                    ('CC00009', 'Literatura Juvenil ', 'SL00002'),
-                    ('CC00010', 'Publicaciones Casa de la Literatura', 'SL00002'),
-                    ('CC00011', 'Literatura Peruana', 'SL00002'),
-                    ('CC00012', 'Literatura Hispanoamericana', 'SL00002'),
-                    ('CC00013', 'Literatura Universal', 'SL00002'),
-                    ('CC00014', 'Estudios Literarios', 'SL00002'),
-                    ('CC00015', 'Colección José María Arguedas', 'SL00002'),
-                    ('CC00016', 'Publicaciones Periódicas', 'SL00002');
+                INSERT INTO coleccion(cod_coleccion, descripcion, fk_cod_sala)
+                VALUES
+                ('CC00001', 'El Pájaro Niño', 'SL00001'),
+                ('CC00002', 'Oshta y el duende', 'SL00001'),
+                ('CC00003', 'Rutsí, el pequeño alucinado', 'SL00001'),
+                ('CC00004', 'La flor del tiempo', 'SL00001'),
+                ('CC00005', 'Mario Vargas Llosa', 'SL00002'),
+                ('CC00006', 'Interdisciplinaria', 'SL00002'),
+                ('CC00007', 'Lima y Mapa Literario', 'SL00002'),
+                ('CC00008', 'Historieta y Novela Gráfica', 'SL00002'),
+                ('CC00009', 'Literatura Juvenil ', 'SL00002'),
+                ('CC00010', 'Publicaciones Casa de la Literatura', 'SL00002'),
+                ('CC00011', 'Literatura Peruana', 'SL00002'),
+                ('CC00012', 'Literatura Hispanoamericana', 'SL00002'),
+                ('CC00013', 'Literatura Universal', 'SL00002'),
+                ('CC00014', 'Estudios Literarios', 'SL00002'),
+                ('CC00015', 'Colección José María Arguedas', 'SL00002'),
+                ('CC00016', 'Publicaciones Periódicas', 'SL00002');
                 """);
     }
 
     private void insertarEditoriales() {
         jdbcTemplate.update("""
-                INSERT INTO editorial(cod_editorial, descripcion) VALUES
+                INSERT INTO editorial(cod_editorial, descripcion)
+                VALUES
                 ('ED00001', 'Andina'),
                 ('ED00002', 'Planeta'),
                 ('ED00003', 'Santillana'),
@@ -180,12 +220,13 @@ public class MySqlConfig implements CommandLineRunner {
                 ('ED00008', 'Ediciones B'),
                 ('ED00009', 'Peisa'),
                 ('ED00010', 'Lumen');
-            """);
+                """);
     }
 
     private void insertarAutores() {
         jdbcTemplate.update("""
-                INSERT INTO autor(cod_autor, nacionalidad, nombre) VALUES
+                INSERT INTO autor(cod_autor, nacionalidad, nombre)
+                VALUES
                 ('AT00001', 'Peruana', 'Mario Vargas Llosa'),
                 ('AT00002', 'Chilena', 'Isabel Allende'),
                 ('AT00003', 'Colombiana', 'Gabriel García Márquez'),
@@ -196,12 +237,13 @@ public class MySqlConfig implements CommandLineRunner {
                 ('AT00008', 'Uruguaya', 'Eduardo Galeano'),
                 ('AT00009', 'Peruana', 'César Vallejo'),
                 ('AT00010', 'Nicaragüense', 'Rubén Darío');
-            """);
+                """);
     }
 
     private void insertarLibrosDetalle() {
         jdbcTemplate.update("""
-                INSERT INTO libro_detalle(cod_libro_detalle, isbn, titulo, year, id_autor, id_coleccion, id_editorial) VALUES
+                INSERT INTO libro_detalle(cod_libro_detalle, isbn, titulo, year, fk_cod_autor, fk_cod_coleccion, fk_cod_editorial)
+                VALUES
                 ('LB00001', '978-84-376-0494-7', 'La ciudad y los perros', 1963, 'AT00001', 'CC00005', 'ED00001'),
                 ('LB00002', '978-84-204-6724-6', 'La casa de los espíritus', 1982, 'AT00002', 'CC00012', 'ED00002'),
                 ('LB00003', '978-84-376-0495-4', 'Cien años de soledad', 1967, 'AT00003', 'CC00013', 'ED00003'),
@@ -222,12 +264,13 @@ public class MySqlConfig implements CommandLineRunner {
                 ('LB00018', '978-84-663-4450-0', 'Memoria del fuego', 1986, 'AT00008', 'CC00014', 'ED00008'),
                 ('LB00019', '978-84-206-3410-8', 'Poemas humanos', 1939, 'AT00009', 'CC00015', 'ED00009'),
                 ('LB00020', '978-84-397-2174-2', 'Cantos de vida y esperanza', 1905, 'AT00010', 'CC00012', 'ED00010');
-            """);
+                """);
     }
 
     private void insertarLibros() {
         jdbcTemplate.update("""
-                INSERT INTO libro(estado, numero_copia, id_libro_detalle) VALUES
+                INSERT INTO libro(estado, numero_copia, fk_cod_libro_detalle)
+                VALUES
                 ('DISPONIBLE', 1, 'LB00001'), ('PRESTADO', 2, 'LB00001'), ('SOLO_PARA_LECTURA_EN_SALA', 3, 'LB00001'), ('DISPONIBLE', 4, 'LB00001'), ('DISPONIBLE', 5, 'LB00001'),
                 ('DISPONIBLE', 1, 'LB00002'), ('PRESTADO', 2, 'LB00002'), ('DISPONIBLE', 3, 'LB00002'), ('SOLO_PARA_LECTURA_EN_SALA', 4, 'LB00002'), ('PRESTADO', 5, 'LB00002'),
                 ('SOLO_PARA_LECTURA_EN_SALA', 1, 'LB00003'), ('DISPONIBLE', 2, 'LB00003'), ('DISPONIBLE', 3, 'LB00003'), ('PRESTADO', 4, 'LB00003'), ('DISPONIBLE', 5, 'LB00003'),
@@ -248,32 +291,34 @@ public class MySqlConfig implements CommandLineRunner {
                 ('DISPONIBLE', 1, 'LB00018'), ('DISPONIBLE', 2, 'LB00018'), ('SOLO_PARA_LECTURA_EN_SALA', 3, 'LB00018'), ('PRESTADO', 4, 'LB00018'), ('DISPONIBLE', 5, 'LB00018'),
                 ('PRESTADO', 1, 'LB00019'), ('DISPONIBLE', 2, 'LB00019'), ('SOLO_PARA_LECTURA_EN_SALA', 3, 'LB00019'), ('DISPONIBLE', 4, 'LB00019'), ('DISPONIBLE', 5, 'LB00019'),
                 ('DISPONIBLE', 1, 'LB00020'), ('SOLO_PARA_LECTURA_EN_SALA', 2, 'LB00020'), ('DISPONIBLE', 3, 'LB00020'), ('PRESTADO', 4, 'LB00020'), ('DISPONIBLE', 5, 'LB00020');
-            """);
+                """);
     }
 
     private void insertarPrestamos() {
         jdbcTemplate.update("""
-                INSERT INTO prestamo(cod_prestamo, fecha_prestamo, id_cliente, estado_devolucion) VALUES
-                ('PS00001', '2015-05-15', 'CL00001', 'DEVOLUCION_PENDIENTE'),
-                ('PS00002', '2015-05-27', 'CL00002', 'DEVOLUCION_PENDIENTE'),
-                ('PS00003', '2015-05-29', 'CL00003', 'DEVOLUCION_PENDIENTE'),
-                ('PS00004', '2015-06-12', 'CL00004', 'DEVOLUCION_PENDIENTE'),
-                ('PS00005', '2015-06-26', 'CL00005', 'DEVOLUCION_PENDIENTE'),
-                ('PS00006', '2015-07-10', 'CL00006', 'DEVOLUCION_PENDIENTE'),
-                ('PS00007', '2015-07-24', 'CL00007', 'DEVOLUCION_PENDIENTE');
-            """);
+                INSERT INTO prestamo(cod_prestamo, fecha_prestamo, fk_cod_cliente, estado_devolucion, fk_cod_usuario)
+                VALUES
+                ('PS00001', '2015-05-15', 'CL00001', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00002', '2015-05-27', 'CL00002', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00003', '2015-05-29', 'CL00003', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00004', '2015-06-12', 'CL00004', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00005', '2015-06-26', 'CL00005', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00006', '2015-07-10', 'CL00006', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00007', '2015-07-24', 'CL00007', 'DEVOLUCION_PENDIENTE', 'US00002');
+                """);
     }
 
     private void insertarDetallePrestamos() {
         jdbcTemplate.update("""
-                INSERT INTO detalle_prestamo(id_libro, id_prestamo) VALUES
-                        (2, 'PS00001'), (7, 'PS00001'), (10, 'PS00001'), (14, 'PS00001'),
-                        (20, 'PS00002'), (21, 'PS00002'),
-                        (27, 'PS00003'),
-                        (33, 'PS00004'), (38, 'PS00004'), (41, 'PS00004'), (50, 'PS00004'),
-                        (52, 'PS00005'), (59, 'PS00005'), (61, 'PS00005'),
-                        (69, 'PS00006'), (71, 'PS00006'), (77, 'PS00006'),
-                        (81, 'PS00007'), (89, 'PS00007'), (91, 'PS00007'), (99, 'PS00007');
-        """);
+                INSERT INTO detalle_prestamo(fk_cod_libro, fk_cod_prestamo)
+                VALUES
+                (2, 'PS00001'), (7, 'PS00001'), (10, 'PS00001'), (14, 'PS00001'),
+                (20, 'PS00002'), (21, 'PS00002'),
+                (27, 'PS00003'),
+                (33, 'PS00004'), (38, 'PS00004'), (41, 'PS00004'), (50, 'PS00004'),
+                (52, 'PS00005'), (59, 'PS00005'), (61, 'PS00005'),
+                (69, 'PS00006'), (71, 'PS00006'), (77, 'PS00006'),
+                (81, 'PS00007'), (89, 'PS00007'), (91, 'PS00007'), (99, 'PS00007');
+                """);
     }
 }

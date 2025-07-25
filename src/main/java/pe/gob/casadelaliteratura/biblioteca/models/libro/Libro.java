@@ -27,7 +27,7 @@ public class Libro {
     private Integer numeroCopia;
 
     @ManyToOne
-    @JoinColumn(name = "id_libro_detalle", nullable = false)
+    @JoinColumn(name = "fk_cod_libro_detalle", nullable = false)
     private LibroDetalle libroDetalle;
 
 }

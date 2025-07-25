@@ -6,5 +6,7 @@ import pe.gob.casadelaliteratura.biblioteca.models.libro.LibroDetalle;
 import java.util.Optional;
 
 public interface LibroDetalleRepository extends JpaRepository<LibroDetalle, String> {
+
     Optional<LibroDetalle> findByIsbn(String isbn);
+
 }

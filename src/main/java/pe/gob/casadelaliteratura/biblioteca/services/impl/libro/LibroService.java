@@ -1,19 +1,21 @@
 package pe.gob.casadelaliteratura.biblioteca.services.impl.libro;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pe.gob.casadelaliteratura.biblioteca.dtos.otros.MensajeDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.libro.complements.ILibroCopiaDataDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.libro.complements.LibroCopiaData2Dto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.libro.complements.LibroCopiaDataDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.libro.LibroDetalleDataDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.libro.complements.request.LibroCopiaNuevoDto;
-import pe.gob.casadelaliteratura.biblioteca.dtos.libro.complements.request.LibroDetalleNuevoDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.libro.libro.request.LibroDetalleNuevoRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.libro.libro.request.LibroNuevaCopiaRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.libro.libro.response.LibroDetalleResponseDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.libro.libro.response.copias.ILibroCopiaResponse;
 import pe.gob.casadelaliteratura.biblioteca.models.libro.*;
 import pe.gob.casadelaliteratura.biblioteca.repositories.libro.*;
-import pe.gob.casadelaliteratura.biblioteca.services.impl.otros.AlmacenCodigosService;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.AlmacenCodigosService;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.libro.ILibroService;
+import pe.gob.casadelaliteratura.biblioteca.utils.converts.LibroConvert;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoLibro;
-import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.ResourceNotFoundException;
+import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException400;
+import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException404;
+import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException409;
 import java.util.List;
 
 @Service
@@ -26,10 +28,12 @@ public class LibroService implements ILibroService {
     private final EditorialRepository editorialRepository;
     private final AlmacenCodigosService acService;
 
-    public LibroService(LibroRepository libRepository, LibroDetalleRepository libDetRepository,
-                        ColeccionRepository coleccionRepository, AutorRepository autorRepository,
-                        EditorialRepository editorialRepository, AlmacenCodigosService acService) {
-
+    public LibroService(LibroRepository libRepository,
+                        LibroDetalleRepository libDetRepository,
+                        ColeccionRepository coleccionRepository,
+                        AutorRepository autorRepository,
+                        EditorialRepository editorialRepository,
+                        AlmacenCodigosService acService) {
         this.libRepository = libRepository;
         this.libDetRepository = libDetRepository;
         this.coleccionRepository = coleccionRepository;
@@ -38,57 +42,31 @@ public class LibroService implements ILibroService {
         this.acService = acService;
     }
 
+    @Transactional
     @Override
-    public List<LibroDetalleDataDto> getAllResumen(String codigo, String titulo, String isbn, Integer year, String autor,
-                                                   String editorial, String coleccion, String sala,
-                                                   Integer cantidadCopias, Integer cantidadDisponibles,
-                                                   Integer cantidadPrestados, Integer cantidadSoloLectura) {
+    public MensajeDto<String> saveLibroCopia(LibroNuevaCopiaRequestDto datosLibro) {
 
-        List<LibroDetalleDataDto> lst = libRepository
-                .obtenerResumenLibros(codigo, titulo, isbn, year, autor,
-                        editorial, coleccion, sala, cantidadCopias,
-                        cantidadDisponibles, cantidadPrestados, cantidadSoloLectura).stream()
-                .map(obj -> new LibroDetalleDataDto(obj.getCodigo(),
-                        obj.getIsbn(), obj.getTitulo(), obj.getYear(), obj.getAutor(), obj.getEditorial(),
-                        obj.getColeccion(), obj.getSala(), obj.getCantidadCopias(), obj.getCantidadDisponibles(),
-                        obj.getCantidadPrestados(), obj.getCantidadSoloLecturaEnSala()))
-                .toList();
+        LibroDetalle libroDetalle = libDetRepository
+                .findById(datosLibro.getCodigoLibro())
+                .orElseThrow(() -> new ErrorException404("No se encontró el libro con el codigo: " +
+                        datosLibro.getCodigoLibro() + ". No se pudo crear una copia."));
 
-        if (lst.isEmpty())
-            throw new ResourceNotFoundException("No se encontraron libros.");
+        if (datosLibro.getEstado() == EstadoLibro.PRESTADO)
+            throw new ErrorException400("La copia de libro no puede registrarse como "
+                    + datosLibro.getEstado());
 
-        return lst;
+        Integer numeroCopia = libRepository.getNumeroCopiaMayor(libroDetalle.getCodLibroDetalle()) + 1;
+        Libro nuevaCopiaLibro = new Libro(null, datosLibro.getEstado(), numeroCopia, libroDetalle);
+        libRepository.save(nuevaCopiaLibro);
+
+        return new MensajeDto<>("Copia de libro registrada satisfactoriamente.");
+
     }
 
+    @Transactional
     @Override
-    public List<ILibroCopiaDataDto> getAllCopias(String codigo, String isbn, String titulo,
-                                                 Integer year, String autor,
-                                                 String editorial, String coleccion, String sala,
-                                                 Integer numeroCopia, String estado) {
-
-        List<ILibroCopiaDataDto> lst = libRepository.obtenerCopiasLibros(codigo, isbn, titulo,
-                        year, autor, editorial, numeroCopia, coleccion, sala, estado).stream()
-                .map(obj -> (obj.getFechaVencimiento() != null) ?
-                                new LibroCopiaDataDto(obj.getCodigo(),
-                                        obj.getIsbn(), obj.getTitulo(), obj.getYear(), obj.getAutor(),
-                                        obj.getEditorial(), obj.getNumeroCopia(), obj.getColeccion(),
-                                        obj.getSala(), obj.getEstado(), obj.getFechaVencimiento()) :
-                                new LibroCopiaData2Dto(obj.getCodigo(),
-                                        obj.getIsbn(), obj.getTitulo(), obj.getYear(), obj.getAutor(),
-                                        obj.getEditorial(), obj.getNumeroCopia(), obj.getColeccion(),
-                                        obj.getSala(), obj.getEstado())
-                        )
-                .toList();
-
-        if (lst.isEmpty())
-            throw new ResourceNotFoundException("No se encontraron libros.");
-
-        return lst;
-    }
-
-    @Override
-    public MensajeDto<String> saveOrUpdateLibroDetalle(String codigo, LibroDetalleNuevoDto datosLibro) {
-
+    public MensajeDto<String> saveOrUpdateLibroDetalle(String codigo,
+                                                       LibroDetalleNuevoRequestDto datosLibro) {
         LibroDetalle libroDetalle;
         String msg;
         LibroDetalle libroDetalleExistente = libDetRepository
@@ -100,36 +78,36 @@ public class LibroService implements ILibroService {
         String codEditorial = datosLibro.getCodigoEditorial();
 
         Coleccion coleccion = coleccionRepository.findById(codColeccion)
-                        .orElse(null);
+                .orElse(null);
         Autor autor = autorRepository.findById(codAutor)
-                        .orElse(null);
+                .orElse(null);
         Editorial editorial = editorialRepository.findById(codEditorial)
-                        .orElse(null);
+                .orElse(null);
 
         if (coleccion == null)
-            throw new ResourceNotFoundException("El codigo de coleccion ingresado no se encuentra registrado.");
+            throw new ErrorException404("El codigo de coleccion ingresado no se encuentra registrado.");
         if (autor == null)
-            throw new ResourceNotFoundException("El codigo de autor ingresado no se encuentra registrado.");
+            throw new ErrorException404("El codigo de autor ingresado no se encuentra registrado.");
         if (editorial == null)
-            throw new ResourceNotFoundException("El codigo de editorial ingresado no se encuentra registrado.");
+            throw new ErrorException404("El codigo de editorial ingresado no se encuentra registrado.");
 
         if (codigo == null) {
             if (libroDetalleExistente != null)
-                throw new ResourceNotFoundException("Ya existe un libro con el isbn ingresado.");
+                throw new ErrorException409("Ya existe un libro con el isbn ingresado.");
 
             libroDetalle = new LibroDetalle(acService.generateCodigo("LB"), datosLibro.getIsbn(),
                     datosLibro.getTitulo(), datosLibro.getYear(), coleccion, autor, editorial);
-            acService.updateTable("LB");
-
             msg = "Datos de libro registrado satisfactoriamente, ahora debes registrar una copia.";
         }
         else {
             if (libroDetalleExistente != null && !libroDetalleExistente.getCodLibroDetalle().equals(codigo))
-                throw new ResourceNotFoundException("Ya existe un libro con el isbn ingresado.");
+                throw new ErrorException409("Ya existe un libro con el isbn ingresado.");
 
             libroDetalle = libDetRepository.findById(codigo)
                     .orElseThrow(() ->
-                            new ResourceNotFoundException("Libro con codigo " + codigo + " no existe."));
+                            new ErrorException409(
+                                    "No se encontró el libro con el codigo: " + codigo
+                            ));
 
             libroDetalle.setIsbn(datosLibro.getIsbn());
             libroDetalle.setTitulo(datosLibro.getTitulo());
@@ -146,23 +124,43 @@ public class LibroService implements ILibroService {
     }
 
     @Override
-    public MensajeDto<String> saveLibroCopia(LibroCopiaNuevoDto datosLibro) {
+    public List<LibroDetalleResponseDto> getAllResumen(String codigo, String titulo,
+                                                       String isbn, Integer year,
+                                                       String autor, String editorial,
+                                                       String coleccion, String sala,
+                                                       Integer cantidadCopias, Integer cantidadDisponibles,
+                                                       Integer cantidadPrestados, Integer cantidadSoloLectura) {
+        List<LibroDetalleResponseDto> lst = libRepository
+                .obtenerResumenLibros(codigo, titulo, isbn, year, autor,
+                        editorial, coleccion, sala, cantidadCopias,
+                        cantidadDisponibles, cantidadPrestados, cantidadSoloLectura).stream()
+                .map(LibroConvert::libroResumenProjectionToLibroDetalleResponseDto)
+                .toList();
 
-        LibroDetalle libroDetalle = libDetRepository
-                .findById(datosLibro.getCodigoLibro())
-                .orElseThrow(() -> new ResourceNotFoundException("Libro con codigo " +
-                        datosLibro.getCodigoLibro() + " no existe. No se pudo crear una copia."));
+        if (lst.isEmpty())
+            throw new ErrorException404("No se encontraron libros.");
 
-        if (datosLibro.getEstadoLibro() == EstadoLibro.PRESTADO) {
-            throw new ResourceNotFoundException("La copia de libro no puede registrarse como " +
-                    datosLibro.getEstadoLibro());
-        }
+        return lst;
+    }
 
-        Integer numeroCopia = libRepository.getNumeroCopiaMayor(libroDetalle.getCodLibroDetalle()) + 1;
-        Libro nuevaCopiaLibro = new Libro(null, datosLibro.getEstadoLibro(), numeroCopia, libroDetalle);
-        libRepository.save(nuevaCopiaLibro);
+    @Override
+    public List<ILibroCopiaResponse> getAllCopias(String codigo, String isbn,
+                                                  String titulo, Integer year,
+                                                  String autor, String editorial,
+                                                  String coleccion, String sala,
+                                                  Integer numeroCopia, String estado) {
+        List<ILibroCopiaResponse>
+                lst = libRepository.obtenerCopiasLibros(codigo, isbn, titulo,
+                        year, autor, editorial, numeroCopia, coleccion, sala, estado).stream()
+                .map(obj -> (obj.getFechaVencimiento() != null) ?
+                         LibroConvert.libroCopiasProjectionToLibroCopiaResponseDto(obj) :
+                         LibroConvert.libroCopiasProjectionToLibroCopiaResponseDto2(obj)
+                ).toList();
 
-        return new MensajeDto<>("Copia de libro registrada satisfactoriamente.");
+        if (lst.isEmpty())
+            throw new ErrorException404("No se encontraron libros.");
+
+        return lst;
     }
 
 }

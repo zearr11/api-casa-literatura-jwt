@@ -22,11 +22,11 @@ public class DetalleDevolucion {
     private TipoEntrega tipoEntrega;
 
     @ManyToOne
-    @JoinColumn(nullable = false, name = "id_devolucion")
+    @JoinColumn(nullable = false, name = "fk_cod_devolucion")
     private Devolucion devolucion;
 
     @OneToOne
-    @JoinColumn(nullable = false, name = "id_detalle_prestamo")
+    @JoinColumn(nullable = false, name = "fk_cod_detalle_prestamo")
     private DetallePrestamo detallePrestamo;
 
 }

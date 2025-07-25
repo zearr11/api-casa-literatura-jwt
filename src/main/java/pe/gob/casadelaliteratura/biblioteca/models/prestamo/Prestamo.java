@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pe.gob.casadelaliteratura.biblioteca.models.cliente.Cliente;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Cliente;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Persona;
+import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoDevolucion;
 
 import java.time.LocalDate;
@@ -33,7 +35,11 @@ public class Prestamo {
     private EstadoDevolucion estadoDevolucion;
 
     @ManyToOne
-    @JoinColumn(name = "id_cliente", nullable = false)
+    @JoinColumn(name = "fk_cod_cliente", nullable = false)
     private Cliente cliente;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_cod_usuario", nullable = false)
+    private Usuario usuario;
 
 }

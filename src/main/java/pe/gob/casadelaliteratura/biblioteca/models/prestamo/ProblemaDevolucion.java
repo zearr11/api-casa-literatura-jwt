@@ -37,7 +37,7 @@ public class ProblemaDevolucion {
     private EstadoProblema estadoProblema;
 
     @OneToOne
-    @JoinColumn(name = "id_detalle_devolucion", nullable = false)
+    @JoinColumn(name = "fk_cod_detalle_devolucion", nullable = false)
     private DetalleDevolucion detalleDevolucion;
 
 }
