@@ -23,4 +23,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
     Optional<UsuarioProjection> findByCustomized(String numeroDoc, String codUsuario, String codPersona);
 
     Optional<List<Usuario>> findByEstado(EstadoUsuario estado);
+
+    Optional<Usuario> findByPersona_NumeroDoc(String numeroDoc);
+
 }

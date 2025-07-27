@@ -1,5 +1,6 @@
 package pe.gob.casadelaliteratura.biblioteca.utils.exceptions;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorMessage<T> {
 
     private LocalDate fecha;

@@ -2,17 +2,25 @@ package pe.gob.casadelaliteratura.biblioteca.services.impl.prestamo;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.login.LoginService;
 import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.complements.DetallePrestamoDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.request.PrestamoRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.request.RangoFechasRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.request.RenovacionRequestDto;
+import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.response.PrestamoResponseDto;
 import pe.gob.casadelaliteratura.biblioteca.models.libro.Libro;
 import pe.gob.casadelaliteratura.biblioteca.models.persona.Cliente;
 import pe.gob.casadelaliteratura.biblioteca.models.prestamo.DetallePrestamo;
+import pe.gob.casadelaliteratura.biblioteca.models.prestamo.Devolucion;
 import pe.gob.casadelaliteratura.biblioteca.models.prestamo.Prestamo;
+import pe.gob.casadelaliteratura.biblioteca.models.prestamo.SancionDemora;
 import pe.gob.casadelaliteratura.biblioteca.repositories.libro.LibroRepository;
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.ClienteRepository;
 import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.DetallePrestamoRepository;
+import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.DevolucionRepository;
 import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.PrestamoRepository;
+import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.SancionDemoraRepository;
 import pe.gob.casadelaliteratura.biblioteca.services.impl.AlmacenCodigosService;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.prestamo.IPrestamoService;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoDevolucion;
@@ -31,23 +39,33 @@ public class PrestamoService implements IPrestamoService {
     private final DetallePrestamoRepository detPrestRepository;
     private final ClienteRepository clienteRepository;
     private final LibroRepository libroRepository;
+    private final SancionDemoraRepository sancionDemoraRepository;
     private final AlmacenCodigosService acService;
+    private final DevolucionRepository devolucionRepository;
+    private final LoginService loginService;
 
     public PrestamoService(PrestamoRepository prestamoRepository,
                            DetallePrestamoRepository detPrestRepository,
                            ClienteRepository clienteRepository,
-                           LibroRepository libroRepository, AlmacenCodigosService acService) {
+                           LibroRepository libroRepository,
+                           SancionDemoraRepository sancionDemoraRepository,
+                           AlmacenCodigosService acService,
+                           DevolucionRepository devolucionRepository,
+                           LoginService loginService) {
         this.prestamoRepository = prestamoRepository;
         this.detPrestRepository = detPrestRepository;
         this.clienteRepository = clienteRepository;
         this.libroRepository = libroRepository;
+        this.sancionDemoraRepository = sancionDemoraRepository;
         this.acService = acService;
+        this.devolucionRepository = devolucionRepository;
+        this.loginService = loginService;
     }
 
-    // falta implementar el usuario que registra el prestamo
+    // falta implementar el usuario que registra el préstamo
     @Transactional
     @Override
-    public MensajeDto<String> registrar(PrestamoRequestDto datosPrestamo) {
+    public MensajeDto<String> registrarPrestamo(PrestamoRequestDto datosPrestamo) {
         List<DetallePrestamo> librosPrestados = new ArrayList<>();
 
         Cliente cliente = clienteRepository
@@ -68,6 +86,24 @@ public class PrestamoService implements IPrestamoService {
                             " cuenta con un préstamo pendiente de devolución. " +
                             "No se puede continuar con la solicitud."
                     );
+
+                Devolucion devolucion = devolucionRepository.findByPrestamo(prestamoDetalle)
+                        .orElse(null);
+
+                if (devolucion != null) {
+                    SancionDemora sancionPendiente = sancionDemoraRepository.findByDevolucion(devolucion)
+                            .orElse(null);
+
+                    if (sancionPendiente != null &&
+                            !LocalDate.now().isAfter(sancionPendiente.getFechaFinSancion()))
+                        throw new ErrorException409(
+                                "El cliente cuenta con una sanción por demora hasta el " +
+                                        sancionPendiente.getFechaFinSancion() +
+                                        ", por el préstamo registrado el " +
+                                        prestamoDetalle.getFechaPrestamo() +
+                                        ". No se puede continuar con la solicitud."
+                        );
+                }
             }
         }
 
@@ -111,7 +147,8 @@ public class PrestamoService implements IPrestamoService {
                     ("No se puede realizar el préstamo de mas de 4 libros por proceso de atención.");
 
         Prestamo nuevoPrestamo = new Prestamo(acService.generateCodigo("PS"), LocalDate.now(),
-                null, EstadoDevolucion.DEVOLUCION_PENDIENTE, cliente, null);
+                null, EstadoDevolucion.DEVOLUCION_PENDIENTE, cliente,
+                loginService.obtenerUsuarioAutenticado());
 
         nuevoPrestamo = prestamoRepository.save(nuevoPrestamo);
 
@@ -125,6 +162,25 @@ public class PrestamoService implements IPrestamoService {
                 ". El codigo de registro del préstamo es " + nuevoPrestamo.getCodPrestamo() + ".";
 
         return new MensajeDto<>(msg);
+    }
+
+    @Transactional
+    @Override
+    public MensajeDto<String> renovarPrestamo(RenovacionRequestDto datosRenovacion) {
+        /*
+        1. Validar que no tenga mas de 3 renovaciones, si tiene 3 renovaciones lanzar excepcion
+           indicando que el cliente ya no puede renovar mas.
+        2. Validar que el prestamo no este vencido, si esta vencido no puede renovar.
+        */
+        return null;
+    }
+
+    @Override
+    public List<PrestamoResponseDto> getPrestamosPersonalizado(String codPrestamo, String codCliente,
+                                                               String codUsuario,
+                                                               EstadoDevolucion estadoDevolucion,
+                                                               RangoFechasRequestDto datosFecha) {
+        return List.of();
     }
 
 }

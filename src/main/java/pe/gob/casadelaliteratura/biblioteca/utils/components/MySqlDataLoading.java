@@ -1,15 +1,15 @@
-package pe.gob.casadelaliteratura.biblioteca.config;
+package pe.gob.casadelaliteratura.biblioteca.utils.components;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MySqlConfig implements CommandLineRunner {
+public class MySqlDataLoading implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public MySqlConfig(JdbcTemplate jdbcTemplate) {
+    public MySqlDataLoading(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -57,9 +57,9 @@ public class MySqlConfig implements CommandLineRunner {
         """);
     }
 
-    // Se ejecuta antes de cada insert en la tabla renovacion.
-    // En caso de renovacion, toma la última fecha de vencimiento que se tenga registrada
-    // y asigna ese valor en la tabla renovacion.
+    // Se ejecuta antes de cada insert en la tabla renovación.
+    // En caso de renovación, toma la última fecha de vencimiento que se tenga registrada
+    // y asigna ese valor en la tabla renovación.
     private void crearTriggerSet14diasRenovacion() {
         jdbcTemplate.execute("""
             CREATE TRIGGER trg_set_fecha_vencimiento_renovacion
@@ -88,7 +88,7 @@ public class MySqlConfig implements CommandLineRunner {
     }
 
     // Se ejecuta antes de cada insert en la tabla detalle_prestamo.
-    // Actualiza el estado a 'PRESTADO' en cada libro que se solicito su prestamo.
+    // Actualiza el estado a 'PRESTADO' en cada libro que se solicitó su prestamo.
     private void crearTriggerSetStateDetallePrestamo() {
         jdbcTemplate.execute("""
                 CREATE TRIGGER trg_update_estado_libro
@@ -168,9 +168,9 @@ public class MySqlConfig implements CommandLineRunner {
         jdbcTemplate.update("""
                 INSERT INTO usuario(cod_usuario, password, rol, fk_cod_persona, estado)
                 VALUES
-                ('US00001', '$2a$12$Sc44vAJoNoPcROJC6xkMTuideJWOuNjkdmpPrSn6zqCBM8BD1JxIG', 'ADMINISTRADOR', 'PA00011', 'ACTIVO'),
-                ('US00002', '$2a$12$Sc44vAJoNoPcROJC6xkMTuideJWOuNjkdmpPrSn6zqCBM8BD1JxIG', 'BIBLIOTECARIO', 'PA00012', 'ACTIVO'),
-                ('US00003', '$2a$12$Sc44vAJoNoPcROJC6xkMTuideJWOuNjkdmpPrSn6zqCBM8BD1JxIG', 'BIBLIOTECARIO', 'PA00013', 'INACTIVO');
+                ('US00001', '$2a$10$pCzDI6ga12ZnqnyP26hF.Os7.Ep83CvovZkDOknOrWVmgA2mx3OAy', 'ADMINISTRADOR', 'PA00011', 'ACTIVO'),
+                ('US00002', '$2a$10$pCzDI6ga12ZnqnyP26hF.Os7.Ep83CvovZkDOknOrWVmgA2mx3OAy', 'BIBLIOTECARIO', 'PA00012', 'ACTIVO'),
+                ('US00003', '$2a$10$pCzDI6ga12ZnqnyP26hF.Os7.Ep83CvovZkDOknOrWVmgA2mx3OAy', 'BIBLIOTECARIO', 'PA00013', 'INACTIVO');
                 """);
     }
 

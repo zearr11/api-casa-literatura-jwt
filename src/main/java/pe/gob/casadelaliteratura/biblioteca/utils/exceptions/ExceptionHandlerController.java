@@ -3,7 +3,6 @@ package pe.gob.casadelaliteratura.biblioteca.utils.exceptions;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,10 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartException;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.*;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -53,30 +49,10 @@ public class ExceptionHandlerController {
                 request.getDescription(false));
     }
 
-    // Autenticado, pero sin permisos para acceder a un recurso
-    @ExceptionHandler(ErrorException403.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorMessage<String> error403(ErrorException403 exception,
-                                         WebRequest request) {
-        return new ErrorMessage<>(LocalDate.now(),
-                exception.getMessage(),
-                request.getDescription(false));
-    }
-
     // Recurso no encontrado
     @ExceptionHandler(ErrorException404.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public ErrorMessage<String> error404(ErrorException404 exception,
-                                         WebRequest request) {
-        return new ErrorMessage<>(LocalDate.now(),
-                exception.getMessage(),
-                request.getDescription(false));
-    }
-
-    // Cuando el metodo Http no esta permitido para el recurso
-    @ExceptionHandler(ErrorException405.class)
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    public ErrorMessage<String> error405(ErrorException405 exception,
                                          WebRequest request) {
         return new ErrorMessage<>(LocalDate.now(),
                 exception.getMessage(),
@@ -96,9 +72,8 @@ public class ExceptionHandlerController {
     // ------------------------------------------------------------------------
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> controlValidacionErrores(MethodArgumentNotValidException ex) {
-        Map<String, Object> errors = new LinkedHashMap<>();
-        errors.put("mensaje", "Error de validación en los campos proporcionados.");
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorMessage<List<String>> controlValidacionErrores(MethodArgumentNotValidException ex) {
 
         List<String> detalles = ex.getBindingResult()
                 .getFieldErrors()
@@ -108,14 +83,18 @@ public class ExceptionHandlerController {
                                 error.getDefaultMessage()))
                 .collect(Collectors.toList());
 
-        errors.put("detalles", detalles);
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        return new ErrorMessage<>(
+                LocalDate.now(),
+                "Error de validación en los campos proporcionados.",
+                detalles
+        );
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidFormat(HttpMessageNotReadableException ex) {
-        Map<String, Object> error = new LinkedHashMap<>();
-        error.put("mensaje", "El cuerpo de la solicitud no se ha definido correctamente.");
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorMessage<List<String>> handleInvalidFormat(HttpMessageNotReadableException ex) {
+
+        List<String> detalles = new ArrayList<>();
 
         Throwable cause = ex.getCause();
         if (cause instanceof InvalidFormatException invalidFormat) {
@@ -126,39 +105,35 @@ public class ExceptionHandlerController {
             String tipoEsperado = invalidFormat.getTargetType().getSimpleName();
             String valorRecibido = invalidFormat.getValue().toString();
 
-            error.put("detalles",
-                    List.of(String.format("Campo '%s': valor '%s' no es válido. Se esperaba un valor de tipo '%s'.",
-                    campo, valorRecibido, tipoEsperado)));
+            detalles.add(String.format("Campo '%s': valor '%s' no es válido. Se esperaba un valor de tipo '%s'.",
+                    campo, valorRecibido, tipoEsperado));
 
             if (invalidFormat.getTargetType().isEnum()) {
-                String[] valoresPermitidos = Arrays.stream(invalidFormat.getTargetType()
-                                .getEnumConstants())
+                String[] valoresPermitidos = Arrays.stream(invalidFormat.getTargetType().getEnumConstants())
                         .map(Object::toString)
                         .toArray(String[]::new);
-                error.put("valoresPermitidos", Arrays.asList(valoresPermitidos));
+
+                detalles.add("Valores permitidos: " + String.join(", ", valoresPermitidos));
             }
+
+        } else {
+            detalles.add("El cuerpo de la solicitud no se ha definido correctamente o contiene errores de formato.");
         }
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ErrorMessage<>(
+                LocalDate.now(),
+                "El cuerpo de la solicitud no se ha definido correctamente.",
+                detalles
+        );
     }
-
-    /*
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
-        Map<String, Object> error = new LinkedHashMap<>();
-        error.put("mensaje", "Error interno del servidor.");
-        error.put("detalle", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    */
 
     @ExceptionHandler(MultipartException.class)
-    public ResponseEntity<ErrorMessage<String>> handleMultipartException(MultipartException ex,
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorMessage<String> handleMultipartException(MultipartException ex,
                                                                        WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorMessage<>(LocalDate.now(),
+        return new ErrorMessage<>(LocalDate.now(),
                         "Error al procesar multipart/form-data. Validar imágenes enviadas.",
-                        request.getDescription(false)));
+                        request.getDescription(false));
     }
 
 }
