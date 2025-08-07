@@ -27,55 +27,59 @@ public class PrestamoController {
     @GetMapping
     public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamos(@RequestParam(required = false)
                                                                           EstadoDevolucion estadoDevolucion,
-                                                                      @RequestBody(required = false)
-                                                                            RangoFechasRequestDto datosFecha) {
+                                                                      @Valid @RequestBody(required = false)
+                                                                            RangoFechasRequestDto datosFecha,
+                                                                      @RequestParam(required = false)
+                                                                          Boolean conSancionesActivas) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
-                        null, null, null, estadoDevolucion, datosFecha));
+                        null, null, null, estadoDevolucion, datosFecha, conSancionesActivas));
     }
 
     // http://localhost:8080/api/v1/prestamos/cod-prestamo/PS00001
     @GetMapping("/cod-prestamo/{codPrestamo}")
-    public ResponseEntity<PrestamoResponseDto> obtenerPrestamoPorCodPrestamo(@PathVariable String codPrestamo,
-                                                                             @RequestParam(required = false)
-                                                                                EstadoDevolucion estadoDevolucion,
-                                                                             @RequestBody(required = false)
-                                                                                 RangoFechasRequestDto datosFecha) {
+    public ResponseEntity<PrestamoResponseDto> obtenerPrestamoPorCodPrestamo(@PathVariable String codPrestamo) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
-                        codPrestamo, null, null, estadoDevolucion, datosFecha)
+                        codPrestamo, null, null, null,
+                                null, null)
                         .getFirst());
     }
 
     // http://localhost:8080/api/v1/prestamos/cod-cliente/CL00001
     @GetMapping("/cod-cliente/{codCliente}")
-    public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamoPorCodCliente(@PathVariable String codCliente,
-                                                                                    @RequestParam(required = false)
+    public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamosPorCodCliente(@PathVariable String codCliente,
+                                                                                   @RequestParam(required = false)
                                                                                         EstadoDevolucion estadoDevolucion,
-                                                                                  @RequestBody(required = false)
-                                                                                      RangoFechasRequestDto datosFecha) {
+                                                                                   @Valid @RequestBody(required = false)
+                                                                                        RangoFechasRequestDto datosFecha,
+                                                                                   @RequestParam(required = false)
+                                                                                        Boolean conSancionesActivas) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
-                        null, codCliente, null, estadoDevolucion, datosFecha));
+                        null, codCliente, null, estadoDevolucion,
+                        datosFecha, conSancionesActivas));
     }
 
     // http://localhost:8080/api/v1/prestamos/cod-usuario/US00001
     @GetMapping("/cod-usuario/{codUsuario}")
-    public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamoPorCodUsuario(@PathVariable String codUsuario,
-                                                                                  @RequestParam(required = false)
-                                                                                      EstadoDevolucion estadoDevolucion,
-                                                                                  @RequestBody(required = false)
-                                                                                      RangoFechasRequestDto datosFecha) {
+    public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamosPorCodUsuario(@PathVariable String codUsuario,
+                                                                                   @RequestParam(required = false)
+                                                                                       EstadoDevolucion estadoDevolucion,
+                                                                                   @Valid @RequestBody(required = false)
+                                                                                       RangoFechasRequestDto datosFecha,
+                                                                                   @RequestParam(required = false)
+                                                                                       Boolean conSancionesActivas) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
-                        null, null, codUsuario, estadoDevolucion, datosFecha));
+                        null, null, codUsuario, estadoDevolucion, datosFecha, conSancionesActivas));
     }
 
     // http://localhost:8080/api/v1/prestamos
     @PostMapping
     public ResponseEntity<MensajeDto<String>> registrarPrestamo(@Valid @RequestBody
                                                                     PrestamoRequestDto datosPrestamo) {
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(prestamoService.registrarPrestamo(datosPrestamo));
     }
 
@@ -83,7 +87,7 @@ public class PrestamoController {
     @PostMapping("/renovacion")
     public ResponseEntity<MensajeDto<String>> registrarRenovacion(@Valid @RequestBody
                                                                       RenovacionRequestDto datosRenovacion) {
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(prestamoService.renovarPrestamo(datosRenovacion));
     }
 

@@ -43,7 +43,7 @@ public class AutorService implements IAutorService {
 
             autor = new Autor(acService.generateCodigo("AT"),
                     datosAutor.getNombre(), datosAutor.getNacionalidad());
-
+            acService.updateTable("AT");
             msg = "Autor registrado satisfactoriamente.";
         }
         else { // EDITAR AUTOR

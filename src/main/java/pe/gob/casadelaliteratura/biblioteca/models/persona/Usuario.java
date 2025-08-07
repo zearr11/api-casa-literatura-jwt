@@ -2,7 +2,7 @@ package pe.gob.casadelaliteratura.biblioteca.models.persona;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoUsuario;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.Role;
 
 @Entity
@@ -27,7 +27,7 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoUsuario estado;
+    private Estado estado;
 
     @OneToOne
     @JoinColumn(name = "fk_cod_persona", nullable = false)

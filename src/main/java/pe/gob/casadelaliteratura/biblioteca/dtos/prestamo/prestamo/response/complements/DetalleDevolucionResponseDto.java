@@ -2,8 +2,11 @@ package pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.response.com
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoProblema;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.TipoEntrega;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.TipoProblema;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -13,16 +16,12 @@ import pe.gob.casadelaliteratura.biblioteca.utils.enums.TipoProblema;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DetalleDevolucionResponseDto {
 
-    private TipoEntrega tipoEntrega;
+    private TipoEntrega estadoEntrega;
 
     // Opcional
-    private String detalleProblema;
-    private String estadoProblema;
-    private String fechaProblema;
-    private TipoProblema tipoProblema;
+    private DetalleProblemaResponseDto problema;
 
     // Opcional
-    private String detalleSolucion;
-    private String fechaSolucion;
+    private DetalleSolucionResponseDto solucion;
 
 }

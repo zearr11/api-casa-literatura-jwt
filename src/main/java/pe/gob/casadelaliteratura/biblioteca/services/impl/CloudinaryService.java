@@ -81,7 +81,7 @@ public class CloudinaryService {
                         continue;
                     }
 
-                    // Última parte: el archivo con extensión (ej. rzrgodihw0hl25qmwji2.jpg)
+                    // Última parte: el archivo con extensión (ej. DNI.jpg)
                     if (i == partes.length - 1) {
                         int punto = parte.lastIndexOf('.');
                         parte = (punto != -1) ? parte.substring(0, punto) : parte;

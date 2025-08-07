@@ -16,8 +16,8 @@ import java.time.LocalDate;
 public class SancionDemora {
 
     @Id
-    @Column(length = 7)
-    private String codSancionDemora;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long codSancionDemora;
 
     @Column(nullable = false)
     private Integer diasSuspension;

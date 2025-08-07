@@ -46,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager noopAuthenticationManager() {
         return authentication -> {
-            throw new AuthenticationServiceException("AuthenticationManager esta deshabilitado");
+            throw new AuthenticationServiceException("AuthenticationManager esta deshabilitado.");
         };
     }
 

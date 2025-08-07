@@ -19,18 +19,18 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PrestamoResponseDto {
 
-    private String codigo;
+    private String codigoPrestamo;
     private LocalDate fechaPrestamo;
     private EstadoDevolucion estadoDevolucion;
     private LocalDate fechaVencimientoOriginal;
-    private LocalDate fechaDevolucion; // OPCIONAL
+    private LocalDate fechaDevolucion; // OPCIONAL (TABLA DEVOLUCION)
 
     private UsuarioResponseDto datosUsuario;
     private ClienteResponseDto datosCliente;
 
-    private List<RenovacionesResponseDto> renovaciones; // OPCIONAL
+    private List<RenovacionesResponseDto> renovaciones; // OPCIONAL (TABLA RENOVACION)
 
-    private List<DetallePrestamoResponseDto> detallePrestamo; // OPCIONAL
+    private List<DetallePrestamoResponseDto> detallePrestamo;
 
     private SancionDemoraResponseDto detalleSancion; // OPCIONAL
 

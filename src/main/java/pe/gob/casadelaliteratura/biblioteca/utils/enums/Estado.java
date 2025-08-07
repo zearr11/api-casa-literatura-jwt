@@ -1,6 +1,6 @@
 package pe.gob.casadelaliteratura.biblioteca.utils.enums;
 
-public enum EstadoUsuario {
+public enum Estado {
     ACTIVO,
     INACTIVO
 }

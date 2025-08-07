@@ -18,6 +18,7 @@ public interface IPrestamoService {
                                                         String codCliente,
                                                         String codUsuario,
                                                         EstadoDevolucion estadoDevolucion,
-                                                        RangoFechasRequestDto datosFecha);
+                                                        RangoFechasRequestDto datosFecha,
+                                                        Boolean conSancionesActivas);
 
 }

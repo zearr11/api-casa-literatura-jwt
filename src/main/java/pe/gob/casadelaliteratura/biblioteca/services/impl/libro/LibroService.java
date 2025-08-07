@@ -97,6 +97,8 @@ public class LibroService implements ILibroService {
 
             libroDetalle = new LibroDetalle(acService.generateCodigo("LB"), datosLibro.getIsbn(),
                     datosLibro.getTitulo(), datosLibro.getYear(), coleccion, autor, editorial);
+            acService.updateTable("LB");
+
             msg = "Datos de libro registrado satisfactoriamente, ahora debes registrar una copia.";
         }
         else {

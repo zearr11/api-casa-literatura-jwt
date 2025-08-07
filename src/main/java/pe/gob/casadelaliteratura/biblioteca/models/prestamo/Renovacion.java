@@ -18,8 +18,8 @@ import java.time.LocalDate;
 public class Renovacion {
 
     @Id
-    @Column(length = 7)
-    private String codRenovacion;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long codRenovacion;
 
     @Column(nullable = false)
     private LocalDate fechaSolicitud;

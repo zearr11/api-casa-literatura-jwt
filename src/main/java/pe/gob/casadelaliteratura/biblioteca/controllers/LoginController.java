@@ -18,6 +18,7 @@ public class LoginController {
         this.loginService = loginService;
     }
 
+    // http://localhost:8080/api/v1/login
     @PostMapping
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(loginService.login(request));

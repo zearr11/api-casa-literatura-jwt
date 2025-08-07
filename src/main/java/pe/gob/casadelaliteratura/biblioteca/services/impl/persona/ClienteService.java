@@ -70,6 +70,9 @@ public class ClienteService implements IClienteService {
             cliente.setCodCliente(acService.generateCodigo("CL"));
             persona.setCodPersona(acService.generateCodigo("PA"));
 
+            acService.updateTable("CL");
+            acService.updateTable("PA");
+
             // Creacion de persona y asociacion de dato
             cliente.setPersona(personRepository.save(persona));
 

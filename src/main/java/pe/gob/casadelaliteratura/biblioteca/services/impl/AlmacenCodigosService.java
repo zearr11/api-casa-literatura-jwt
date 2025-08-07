@@ -25,27 +25,27 @@ public class AlmacenCodigosService {
         DV -> Devolucion
         PS -> Prestamo
         PD -> ProblemaDevolucion
-        RN -> Renovacion
-        SR -> SancionDemora
+        RN -> Renovacion X
+        SR -> SancionDemora X
         SD -> SolucionDevolucion
     */
     public String generateCodigo(String prefijo) {
         return prefijo + String.format("%05d", getLastIdByTable(prefijo));
     }
 
-    // Obtiene el ultimo id almacenado en la tabla de id's y actualiza su valor
-    private Integer getLastIdByTable(String prefijo) {
-        AlmacenCodigos ac = acRepository.findById(prefijo).orElse(null);
-        updateTable(prefijo);
-        return (ac != null) ? ac.getNumero() : null;
-    }
-
-    private void updateTable(String prefijo) {
+    // Actualiza el ultimo id almacenado en la tabla
+    public void updateTable(String prefijo) {
         AlmacenCodigos ac = acRepository.findById(prefijo).orElse(null);
         if (ac != null){
-            ac.setNumero(ac.getNumero()+1);
+            ac.setNumero(ac.getNumero() + 1);
             acRepository.save(ac);
         }
+    }
+
+    // Obtiene el ultimo id almacenado en la tabla de id's
+    private Integer getLastIdByTable(String prefijo) {
+        AlmacenCodigos ac = acRepository.findById(prefijo).orElse(null);
+        return (ac != null) ? ac.getNumero() : null;
     }
 
 }

@@ -7,7 +7,7 @@ import pe.gob.casadelaliteratura.biblioteca.dtos.persona.usuario.UsuarioResponse
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.UsuarioRepository;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.persona.IUsuarioService;
 import pe.gob.casadelaliteratura.biblioteca.utils.converts.UsuarioConvert;
-import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoUsuario;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException404;
 import java.util.List;
 
@@ -26,7 +26,12 @@ public class UsuarioService implements IUsuarioService {
     }
 
     @Override
-    public List<UsuarioResponseDto> getAllUsuariosByEstado(EstadoUsuario estado) {
+    public MensajeDto<String> disableEnableUsuario(String codUsuario) {
+        return new MensajeDto<>("Prueba OK");
+    }
+
+    @Override
+    public List<UsuarioResponseDto> getAllUsuariosByEstado(Estado estado) {
         return userRepository.findByEstado(estado).orElseThrow(() ->
                         new ErrorException404("No se encontraron usuarios.")
                 )
@@ -43,11 +48,6 @@ public class UsuarioService implements IUsuarioService {
                 .orElseThrow(() -> new ErrorException404(
                         "No se encontró al usuario con el codigo: " + codUsuario
                 ));
-    }
-
-    @Override
-    public UsuarioResponseDto getByCodPersona(String codPersona) {
-        return null;
     }
 
     @Override

@@ -48,6 +48,8 @@ public class SalaService implements ISalaService {
                 throw new ErrorException409("Ya existe una sala con el nombre ingresado.");
 
             sala = new Sala(acService.generateCodigo("SL"), datosSala.getSala());
+            acService.updateTable("SL");
+
             msg = "Sala registrada satisfactoriamente.";
         }
         else {

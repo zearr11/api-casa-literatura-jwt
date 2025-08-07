@@ -8,7 +8,7 @@ import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.persona.usuario.UsuarioRequestDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.persona.usuario.UsuarioResponseDto;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.persona.IUsuarioService;
-import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoUsuario;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import java.util.List;
 
 // FALTA IMPLEMENTAR ALGUNOS MÉTODOS
@@ -25,10 +25,10 @@ public class UsuarioController {
     // http://localhost:8080/api/v1/usuarios
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDto>> obtenerUsuariosPorEstado(@RequestParam(required = false)
-                                                                        EstadoUsuario estado) {
+                                                                             Estado estado) {
         List<UsuarioResponseDto> resultado = userService
                 .getAllUsuariosByEstado(
-                        (estado == null) ? EstadoUsuario.ACTIVO : estado
+                        (estado == null) ? Estado.ACTIVO : estado
                 );
         return ResponseEntity.status(HttpStatus.OK)
                 .body(resultado);
@@ -61,6 +61,13 @@ public class UsuarioController {
                                                                 @Valid @RequestBody UsuarioRequestDto datosUsuario) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(userService.saveOrUpdate(codigoUsuario, datosUsuario));
+    }
+
+    // http://localhost:8080/api/v1/usuarios/US00001
+    @PutMapping("/estado/{codigoUsuario}")
+    public ResponseEntity<MensajeDto<String>> habilitarDesabilitarUsuario(@PathVariable String codigoUsuario) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(userService.disableEnableUsuario(codigoUsuario));
     }
 
 }

@@ -15,6 +15,6 @@ public class DetallePrestamoResponseDto {
     private String titulo;
     private Integer numeroCopia;
 
-    private DetalleDevolucionResponseDto detalleDevolucion;
+    private DetalleDevolucionResponseDto detalleDevolucion; // OPCIONAL (TABLA DETALLE_DEVOLUCION)
 
 }

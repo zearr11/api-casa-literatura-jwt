@@ -42,6 +42,7 @@ public class EditorialService implements IEditorialService {
 
             editorial = new Editorial(acService.generateCodigo("ED"),
                                         datosEditorial.getEditorial());
+            acService.updateTable("ED");
 
             msg = "Editorial registrada satisfactoriamente.";
         }

@@ -8,7 +8,7 @@ import pe.gob.casadelaliteratura.biblioteca.dtos.login.LoginRequest;
 import pe.gob.casadelaliteratura.biblioteca.dtos.login.LoginResponse;
 import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.UsuarioRepository;
-import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoUsuario;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException401;
 
 @Service
@@ -38,7 +38,7 @@ public class LoginService {
             throw new ErrorException401(CREDENTIALS_ERROR);
         }
 
-        if (!usuario.getEstado().equals(EstadoUsuario.ACTIVO)) {
+        if (!usuario.getEstado().equals(Estado.ACTIVO)) {
             throw new ErrorException401(USER_INACTIVE);
         }
 

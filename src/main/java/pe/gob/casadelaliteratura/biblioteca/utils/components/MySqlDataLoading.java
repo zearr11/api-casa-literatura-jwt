@@ -23,6 +23,7 @@ public class MySqlDataLoading implements CommandLineRunner {
             crearTriggerSet14diasPrestamo();
             crearTriggerSet14diasRenovacion();
             crearTriggerSetStateDetallePrestamo();
+            crearTriggerSetSancionDemora();
 
             // Tabla que almacena los ids
             insertarCodigosIniciales();
@@ -102,6 +103,75 @@ public class MySqlDataLoading implements CommandLineRunner {
                 """);
     }
 
+    // Se ejecuta antes de cada update en la tabla prestamo.
+    // Aplica una sanción de 2 días por cada día de demora en caso se
+    // detecte un retraso en la devolución del préstamo.
+    private void crearTriggerSetSancionDemora() {
+        jdbcTemplate.execute("""
+                CREATE TRIGGER trg_sancion_demora
+                BEFORE UPDATE ON prestamo
+                FOR EACH ROW
+                BEGIN
+                
+                    DECLARE fecha_actual DATE;
+                    DECLARE ultima_fecha_vencimiento_prestamo DATE;
+                    DECLARE fecha_devolucion_reg DATE;
+                    DECLARE dias_retraso INT;
+                    DECLARE dias_suspension INT;
+                
+                    SET fecha_actual = CURDATE();
+                
+                    -- OBTENER LA ULTIMA FECHA VENCIMIENTO REGISTRADA EN LA TABLA RENOVACION
+                    SELECT MAX(nueva_fecha_vencimiento) INTO ultima_fecha_vencimiento_prestamo\s
+                	FROM RENOVACION
+                	WHERE fk_cod_prestamo = OLD.cod_prestamo;
+                
+                    -- SI ES NULL ENTONCES NO SE HAN REGISTRADO RENOVACIONES, POR LO QUE SE TOMA
+                    -- LA FECHA VENCIMIENTO ORIGINAL QUE SE REGISTRO EN EL PRESTAMO
+                	IF ultima_fecha_vencimiento_prestamo IS NULL THEN
+                		SET ultima_fecha_vencimiento_prestamo = OLD.fecha_vencimiento;
+                	END IF;
+                
+                	-- DEVOLUCION REGULAR
+                	IF NEW.estado_devolucion = 'DEVOLUCION_COMPLETA' AND
+                	   OLD.estado_devolucion = 'DEVOLUCION_PENDIENTE' THEN
+                
+                        SELECT fecha_devolucion INTO fecha_devolucion_reg
+                        FROM devolucion
+                        WHERE fk_cod_prestamo =  OLD.cod_prestamo;
+                
+                    -- DEVOLUCION CON PROBLEMA Y SOLUCION REGISTRADA
+                    ELSEIF NEW.estado_devolucion = 'DEVOLUCION_COMPLETA' AND
+                	     OLD.estado_devolucion = 'DEVOLUCION_PARCIAL' THEN
+                
+                        SELECT MAX(sd.fecha_solucion) INTO fecha_devolucion_reg
+                        FROM solucion_devolucion sd
+                		INNER JOIN problema_devolucion pd ON pd.cod_problema_devolucion = sd.fk_cod_problema_devolucion
+                		INNER JOIN detalle_devolucion dd ON dd.id_detalle_devolucion = pd.fk_cod_detalle_devolucion
+                		INNER JOIN devolucion dv ON dv.cod_devolucion = dd.fk_cod_devolucion
+                		WHERE dv.fk_cod_prestamo = OLD.cod_prestamo;
+                
+                    END IF;
+                
+                    IF fecha_devolucion_reg > ultima_fecha_vencimiento_prestamo THEN
+                
+                		SET dias_retraso = DATEDIFF(fecha_devolucion_reg, ultima_fecha_vencimiento_prestamo);
+                		SET dias_suspension = dias_retraso * 2;
+                
+                		INSERT INTO sancion_demora (dias_suspension, fecha_inicio_sancion, fecha_fin_sancion, fk_cod_devolucion)
+                		VALUES (
+                			dias_suspension,
+                			fecha_actual,
+                			DATE_ADD(fecha_actual, INTERVAL dias_suspension DAY),
+                			(SELECT cod_devolucion FROM devolucion WHERE fk_cod_prestamo = OLD.cod_prestamo)
+                		);
+                
+                	END IF;
+                
+                END
+                """);
+    }
+
     // Carga los valores iniciales de la tabla almacen_codigos, la cual
     // almacena los ultimos id's de algunas tablas. Otras tablas generan sus
     // propios id's al ser incrementales.
@@ -113,7 +183,7 @@ public class MySqlDataLoading implements CommandLineRunner {
                 ('CL', 11), ('SL', 3), ('CC', 17),
                 ('AT', 11), ('ED', 11), ('LB', 21),
                 ('DV', 1), ('PS', 8), ('PD', 1),
-                ('RN', 1), ('SR', 1), ('SD', 1);
+                ('SD', 1);
                 """);
     }
 
@@ -298,13 +368,13 @@ public class MySqlDataLoading implements CommandLineRunner {
         jdbcTemplate.update("""
                 INSERT INTO prestamo(cod_prestamo, fecha_prestamo, fk_cod_cliente, estado_devolucion, fk_cod_usuario)
                 VALUES
-                ('PS00001', '2015-05-15', 'CL00001', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00002', '2015-05-27', 'CL00002', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00003', '2015-05-29', 'CL00003', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00004', '2015-06-12', 'CL00004', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00005', '2015-06-26', 'CL00005', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00006', '2015-07-10', 'CL00006', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00007', '2015-07-24', 'CL00007', 'DEVOLUCION_PENDIENTE', 'US00002');
+                ('PS00001', '2025-07-15', 'CL00001', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00002', '2025-07-27', 'CL00002', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00003', '2025-07-29', 'CL00003', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00004', '2025-06-12', 'CL00004', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00005', '2025-06-26', 'CL00005', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00006', '2025-07-10', 'CL00006', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00007', '2025-07-24', 'CL00007', 'DEVOLUCION_PENDIENTE', 'US00002');
                 """);
     }
 

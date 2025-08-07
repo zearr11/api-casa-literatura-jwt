@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.projections.UsuarioProjection;
-import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoUsuario;
+import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +22,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
             """, nativeQuery = true)
     Optional<UsuarioProjection> findByCustomized(String numeroDoc, String codUsuario, String codPersona);
 
-    Optional<List<Usuario>> findByEstado(EstadoUsuario estado);
+    Optional<List<Usuario>> findByEstado(Estado estado);
 
     Optional<Usuario> findByPersona_NumeroDoc(String numeroDoc);
 

@@ -6,7 +6,7 @@ import pe.gob.casadelaliteratura.biblioteca.models.prestamo.SancionDemora;
 
 import java.util.Optional;
 
-public interface SancionDemoraRepository extends JpaRepository<SancionDemora, String> {
+public interface SancionDemoraRepository extends JpaRepository<SancionDemora, Long> {
 
     Optional<SancionDemora> findByDevolucion(Devolucion devolucion);
 

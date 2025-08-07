@@ -52,6 +52,7 @@ public class ColeccionService implements IColeccionService {
 
             coleccion = new Coleccion(acService.generateCodigo("CC"),
                     datosColeccion.getColeccion(), sala);
+            acService.updateTable("CC");
             msg = "Colección registrada satisfactoriamente.";
         }
         else {
