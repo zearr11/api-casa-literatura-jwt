@@ -1,5 +1,6 @@
 package pe.gob.casadelaliteratura.biblioteca.services.impl.prestamo;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pe.gob.casadelaliteratura.biblioteca.dtos.persona.cliente.ClienteResponseDto;
@@ -7,6 +8,7 @@ import pe.gob.casadelaliteratura.biblioteca.dtos.persona.usuario.UsuarioResponse
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.response.complements.*;
 import pe.gob.casadelaliteratura.biblioteca.models.prestamo.*;
 import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.*;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.EmailService;
 import pe.gob.casadelaliteratura.biblioteca.services.impl.login.LoginService;
 import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.complements.DetallePrestamoDto;
@@ -50,6 +52,8 @@ public class PrestamoService implements IPrestamoService {
     private final LoginService loginService;
     private final IClienteService clienteService;
     private final IUsuarioService usuarioService;
+    private final EmailService emailService;
+    private final EntityManager entityManager;
 
     public PrestamoService(PrestamoRepository prestamoRepository,
                            RenovacionRepository renovacionRepository,
@@ -64,7 +68,7 @@ public class PrestamoService implements IPrestamoService {
                            DevolucionRepository devolucionRepository,
                            LoginService loginService,
                            IClienteService clienteService,
-                           IUsuarioService usuarioService) {
+                           IUsuarioService usuarioService, EmailService emailService, EntityManager entityManager) {
         this.prestamoRepository = prestamoRepository;
         this.renovacionRepository = renovacionRepository;
         this.detPrestRepository = detPrestRepository;
@@ -79,8 +83,10 @@ public class PrestamoService implements IPrestamoService {
         this.loginService = loginService;
         this.clienteService = clienteService;
         this.usuarioService = usuarioService;
+        this.emailService = emailService;
+        this.entityManager = entityManager;
     }
-    
+
     @Transactional
     @Override
     public MensajeDto<String> registrarPrestamo(PrestamoRequestDto datosPrestamo) {
@@ -179,6 +185,22 @@ public class PrestamoService implements IPrestamoService {
         String msg = "Se ha registrado el préstamo al cliente con codigo " +
                 cliente.getCodCliente() +
                 ". El codigo de registro del préstamo es " + nuevoPrestamo.getCodPrestamo() + ".";
+
+        // -------------------------------------------------------------------
+        entityManager.refresh(nuevoPrestamo);
+
+        String subject = "Aviso sobre préstamo registrado";
+        String nombreUsuario = cliente.getPersona().getNombres() + " " +
+                cliente.getPersona().getApellidos();
+        String fechaPrestamo = nuevoPrestamo.getFechaPrestamo().toString();
+        String fechaVenc = nuevoPrestamo.getFechaVencimiento().toString();
+
+        envioCorreo(
+                cliente.getPersona().getCorreo(),
+                subject, nombreUsuario, nuevoPrestamo.getCodPrestamo(),
+                fechaPrestamo, fechaVenc
+        );
+        // -------------------------------------------------------------------
 
         return new MensajeDto<>(msg);
     }
@@ -421,6 +443,24 @@ public class PrestamoService implements IPrestamoService {
             throw new ErrorException404("No se encontraron prestamos.");
 
         return lstPrestamos;
+    }
+
+    private void envioCorreo(String correoDestino, String titulo,
+                             String nombreUsuario, String codPrestamo,
+                             String fechaPrestamo, String fechaVencimiento) {
+        new Thread(
+                () ->
+                {
+                    try {
+                        emailService.sendEmail(correoDestino,
+                                titulo, nombreUsuario, codPrestamo, fechaPrestamo,
+                                fechaVencimiento);
+                    } catch (Exception e) {
+                        System.out.println("Error al enviar correo electrónico: " + e.getMessage());
+                    }
+                }
+        ).start();
+
     }
 
 }
