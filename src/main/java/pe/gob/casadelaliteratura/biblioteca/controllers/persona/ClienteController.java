@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.persona.cliente.ClienteRequestDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.persona.cliente.ClienteResponseDto;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.EmailService;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.persona.IClienteService;
 import java.util.List;
 
