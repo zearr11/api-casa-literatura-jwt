@@ -9,7 +9,7 @@ import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.response.comp
 import pe.gob.casadelaliteratura.biblioteca.models.prestamo.*;
 import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.*;
 import pe.gob.casadelaliteratura.biblioteca.services.impl.EmailService;
-import pe.gob.casadelaliteratura.biblioteca.services.impl.login.LoginService;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.auth.AuthService;
 import pe.gob.casadelaliteratura.biblioteca.dtos.MensajeDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.complements.DetallePrestamoDto;
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.request.PrestamoRequestDto;
@@ -49,7 +49,7 @@ public class PrestamoService implements IPrestamoService {
     private final SancionDemoraRepository sancionDemoraRepository;
     private final AlmacenCodigosService acService;
     private final DevolucionRepository devolucionRepository;
-    private final LoginService loginService;
+    private final AuthService authService;
     private final IClienteService clienteService;
     private final IUsuarioService usuarioService;
     private final EmailService emailService;
@@ -66,7 +66,7 @@ public class PrestamoService implements IPrestamoService {
                            SancionDemoraRepository sancionDemoraRepository,
                            AlmacenCodigosService acService,
                            DevolucionRepository devolucionRepository,
-                           LoginService loginService,
+                           AuthService authService,
                            IClienteService clienteService,
                            IUsuarioService usuarioService, EmailService emailService, EntityManager entityManager) {
         this.prestamoRepository = prestamoRepository;
@@ -80,7 +80,7 @@ public class PrestamoService implements IPrestamoService {
         this.sancionDemoraRepository = sancionDemoraRepository;
         this.acService = acService;
         this.devolucionRepository = devolucionRepository;
-        this.loginService = loginService;
+        this.authService = authService;
         this.clienteService = clienteService;
         this.usuarioService = usuarioService;
         this.emailService = emailService;
@@ -172,7 +172,7 @@ public class PrestamoService implements IPrestamoService {
 
         Prestamo nuevoPrestamo = new Prestamo(acService.generateCodigo("PS"), LocalDate.now(),
                 null, EstadoDevolucion.DEVOLUCION_PENDIENTE, cliente,
-                loginService.obtenerUsuarioAutenticado());
+                authService.obtenerUsuarioAutenticado());
 
         nuevoPrestamo = prestamoRepository.save(nuevoPrestamo);
         acService.updateTable("PS");
@@ -254,7 +254,7 @@ public class PrestamoService implements IPrestamoService {
 
         Renovacion renovacion = new Renovacion();
         renovacion.setPrestamo(prestamo);
-        renovacion.setUsuario(loginService.obtenerUsuarioAutenticado());
+        renovacion.setUsuario(authService.obtenerUsuarioAutenticado());
         renovacion.setFechaSolicitud(LocalDate.now());
         renovacion.setMedioSolicitud(datosRenovacion.getMedioSolicitud());
 

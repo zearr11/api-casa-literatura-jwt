@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.UsuarioRepository;
-import pe.gob.casadelaliteratura.biblioteca.services.impl.login.JwtService;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.auth.JwtService;
 import java.io.IOException;
 import java.util.List;
 

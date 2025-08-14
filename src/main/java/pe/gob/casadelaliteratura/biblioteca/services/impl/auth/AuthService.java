@@ -1,18 +1,19 @@
-package pe.gob.casadelaliteratura.biblioteca.services.impl.login;
+package pe.gob.casadelaliteratura.biblioteca.services.impl.auth;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pe.gob.casadelaliteratura.biblioteca.dtos.login.LoginRequest;
-import pe.gob.casadelaliteratura.biblioteca.dtos.login.LoginResponse;
+import pe.gob.casadelaliteratura.biblioteca.dtos.auth.AuthRequest;
+import pe.gob.casadelaliteratura.biblioteca.dtos.auth.AuthResponse;
+import pe.gob.casadelaliteratura.biblioteca.dtos.auth.RefreshResponse;
 import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.UsuarioRepository;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException401;
 
 @Service
-public class LoginService {
+public class AuthService {
 
     private static final String CREDENTIALS_ERROR = "Credenciales incorrectas.";
     private static final String USER_INACTIVE = "El usuario se encuentra inactivo. Contacte con un administrador.";
@@ -21,14 +22,14 @@ public class LoginService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginService(UsuarioRepository usuarioRepo,
-                        JwtService jwtService, PasswordEncoder passwordEncoder) {
+    public AuthService(UsuarioRepository usuarioRepo,
+                       JwtService jwtService, PasswordEncoder passwordEncoder) {
         this.usuarioRepo = usuarioRepo;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public AuthResponse login(AuthRequest request) {
 
         Usuario usuario = usuarioRepo
                 .findByPersona_NumeroDoc(request.getNumeroDoc())
@@ -42,9 +43,27 @@ public class LoginService {
             throw new ErrorException401(USER_INACTIVE);
         }
 
-        String jwt = jwtService.generateToken(usuario);
+        String accessToken = jwtService.generateAccessToken(usuario);
+        String refreshToken = jwtService.generateRefreshToken(usuario);
 
-        return new LoginResponse(jwt);
+        return new AuthResponse(accessToken, refreshToken);
+
+    }
+
+    public RefreshResponse refresh(String refreshToken) {
+
+        String numeroDoc = jwtService.extractNumeroDoc(refreshToken);
+
+        Usuario usuario = usuarioRepo.findByPersona_NumeroDoc(numeroDoc)
+                .orElseThrow(() -> new ErrorException401("Refresh token inválido."));
+
+        if (!jwtService.isTokenValid(refreshToken, usuario)) {
+            throw new ErrorException401("Refresh token expirado o inválido.");
+        }
+
+        String newAccessToken = jwtService.generateAccessToken(usuario);
+
+        return new RefreshResponse(newAccessToken);
 
     }
 

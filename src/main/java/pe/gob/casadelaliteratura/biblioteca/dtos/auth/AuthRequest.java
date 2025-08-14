@@ -1,4 +1,4 @@
-package pe.gob.casadelaliteratura.biblioteca.dtos.login;
+package pe.gob.casadelaliteratura.biblioteca.dtos.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequest {
+public class AuthRequest {
 
     @NotBlank(message = "El numero de documento es obligatorio.")
     private String numeroDoc;

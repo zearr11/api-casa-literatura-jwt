@@ -1,4 +1,4 @@
-package pe.gob.casadelaliteratura.biblioteca.services.impl.login;
+package pe.gob.casadelaliteratura.biblioteca.services.impl.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
@@ -16,16 +16,26 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
-    private static final int EXPIRATION_DURATION = 86400000;
+    private static final int ACCESS_TOKEN_DURATION = 86400000; // 1 DIA
+    private static final int REFRESH_TOKEN_DURATION = 604800000; // 7 DIAS
 
-    public String generateToken(Usuario usuario) {
+    public String generateAccessToken(Usuario usuario) {
         return Jwts.builder()
                 .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
                 .setSubject(usuario.getPersona().getNumeroDoc())
                 .claim("role", "ROLE_" + usuario.getRol().name())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_DURATION))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_DURATION))
+                .compact();
+    }
+
+    public String generateRefreshToken(Usuario usuario) {
+        return Jwts.builder()
+                .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)
+                .setSubject(usuario.getPersona().getNumeroDoc())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_DURATION))
                 .compact();
     }
 

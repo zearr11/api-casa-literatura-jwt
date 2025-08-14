@@ -13,7 +13,7 @@ import pe.gob.casadelaliteratura.biblioteca.models.prestamo.*;
 import pe.gob.casadelaliteratura.biblioteca.repositories.libro.LibroRepository;
 import pe.gob.casadelaliteratura.biblioteca.repositories.prestamo.*;
 import pe.gob.casadelaliteratura.biblioteca.services.impl.AlmacenCodigosService;
-import pe.gob.casadelaliteratura.biblioteca.services.impl.login.LoginService;
+import pe.gob.casadelaliteratura.biblioteca.services.impl.auth.AuthService;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.prestamo.IDevolucionService;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.*;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException404;
@@ -32,7 +32,7 @@ public class DevolucionService implements IDevolucionService {
     private final DetallePrestamoRepository detallePrestRepository;
     private final DetalleDevolucionRepository detalleDevRepository;
     private final AlmacenCodigosService acService;
-    private final LoginService loginService;
+    private final AuthService authService;
     private final LibroRepository libroRepository;
     private final ProblemaDevolucionRepository problemaRepository;
     private final SolucionDevolucionRepository solucionDevolucionRepository;
@@ -41,7 +41,7 @@ public class DevolucionService implements IDevolucionService {
                              PrestamoRepository prestamoRepository,
                              DetallePrestamoRepository detallePrestRepository,
                              DetalleDevolucionRepository detalleDevRepository,
-                             AlmacenCodigosService acService, LoginService loginService,
+                             AlmacenCodigosService acService, AuthService authService,
                              LibroRepository libroRepository,
                              ProblemaDevolucionRepository problemaRepository,
                              SolucionDevolucionRepository solucionDevolucionRepository) {
@@ -50,7 +50,7 @@ public class DevolucionService implements IDevolucionService {
         this.detallePrestRepository = detallePrestRepository;
         this.detalleDevRepository = detalleDevRepository;
         this.acService = acService;
-        this.loginService = loginService;
+        this.authService = authService;
         this.libroRepository = libroRepository;
         this.problemaRepository = problemaRepository;
         this.solucionDevolucionRepository = solucionDevolucionRepository;
@@ -112,7 +112,7 @@ public class DevolucionService implements IDevolucionService {
 
         // Registrar devolución general
         Devolucion devolucion = devolucionRepository.save(new Devolucion(acService.generateCodigo("DV"),
-                fechaActual, prestamo, loginService.obtenerUsuarioAutenticado()));
+                fechaActual, prestamo, authService.obtenerUsuarioAutenticado()));
         acService.updateTable("DV");
 
 
@@ -370,7 +370,7 @@ public class DevolucionService implements IDevolucionService {
         // Guardar la solución
         SolucionDevolucion solucion = new SolucionDevolucion(acService.generateCodigo("SD"),
                 LocalDate.now(), detalleSolucion,
-                datosProblemaDevolucion, loginService.obtenerUsuarioAutenticado());
+                datosProblemaDevolucion, authService.obtenerUsuarioAutenticado());
         solucionDevolucionRepository.save(solucion);
         acService.updateTable("SD");
 

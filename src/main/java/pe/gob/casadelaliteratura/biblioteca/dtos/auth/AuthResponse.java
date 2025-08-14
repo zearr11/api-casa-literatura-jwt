@@ -1,4 +1,4 @@
-package pe.gob.casadelaliteratura.biblioteca.dtos.login;
+package pe.gob.casadelaliteratura.biblioteca.dtos.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class LoginResponse {
+public class AuthResponse {
 
-    private String token;
+    private String accessToken;
+    private String refreshToken;
 
 }
