@@ -114,7 +114,22 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public MensajeDto<String> disableEnableUsuario(String codUsuario) {
-        return new MensajeDto<>("Prueba OK");
+        if (codUsuario == null || codUsuario.trim().isEmpty())
+            throw new ErrorException409("Debe proporcionar el código de usuario.");
+
+        Usuario usuario = userRepository.findById(codUsuario)
+                .orElseThrow(() -> new ErrorException404("No se encontró el usuario con el código: " + codUsuario));
+
+        Estado estadoActual = usuario.getEstado();
+        Estado nuevoEstado = (estadoActual == Estado.ACTIVO) ? Estado.INACTIVO : Estado.ACTIVO;
+        usuario.setEstado(nuevoEstado);
+        userRepository.save(usuario);
+
+        String msg = (nuevoEstado == Estado.ACTIVO)
+                ? "Usuario activado correctamente"
+                : "Usuario desactivado correctamente";
+
+        return new MensajeDto<>(msg);
     }
 
     @Override
@@ -139,7 +154,14 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public UsuarioResponseDto getByNumeroDoc(String numeroDoc) {
-        return null;
+        if (numeroDoc == null || numeroDoc.trim().isEmpty())
+            throw new ErrorException409("Debe proporcionar el número de documento.");
+
+        return userRepository.findByCustomized(numeroDoc, null, null)
+                .map(UsuarioConvert::usuarioProjectionToUsuarioDataResponseDto)
+                .orElseThrow(() -> new ErrorException404(
+                        "No se encontró al usuario con el número de documento: " + numeroDoc
+                ));
     }
 
 }

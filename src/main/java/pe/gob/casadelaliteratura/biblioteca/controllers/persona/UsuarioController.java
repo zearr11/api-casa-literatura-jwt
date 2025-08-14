@@ -11,7 +11,6 @@ import pe.gob.casadelaliteratura.biblioteca.services.interfaces.persona.IUsuario
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.Estado;
 import java.util.List;
 
-// FALTA IMPLEMENTAR ALGUNOS MÉTODOS
 @RestController
 @RequestMapping("/api/v1/usuarios")
 public class UsuarioController {
@@ -63,7 +62,7 @@ public class UsuarioController {
                 .body(userService.saveOrUpdate(codigoUsuario, datosUsuario));
     }
 
-    // http://localhost:8080/api/v1/usuarios/US00001
+    // http://localhost:8080/api/v1/usuarios/estado/US00001
     @PutMapping("/estado/{codigoUsuario}")
     public ResponseEntity<MensajeDto<String>> habilitarDesabilitarUsuario(@PathVariable String codigoUsuario) {
         return ResponseEntity.status(HttpStatus.OK)

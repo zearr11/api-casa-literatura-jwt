@@ -22,6 +22,7 @@ public class DevolucionController {
         this.devolucionService = devolucionService;
     }
 
+    // http://localhost:8080/api/v1/devoluciones
     @PostMapping
     public ResponseEntity<MensajeDto<String>> registrarDevolucion(@Valid @RequestBody
                                                                       DevolucionRequestDto datosDevolucion) {
@@ -29,6 +30,7 @@ public class DevolucionController {
                 .body(devolucionService.registrarDevolucion(datosDevolucion));
     }
 
+    // http://localhost:8080/api/v1/devoluciones/soluciones
     @PostMapping("/soluciones")
     public ResponseEntity<MensajeDto<String>> registrarSolucionDevolucion(@Valid @RequestBody
                                                                               SolucionRequestDto datosSolucion) {
