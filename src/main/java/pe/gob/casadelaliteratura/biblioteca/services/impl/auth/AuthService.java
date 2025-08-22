@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pe.gob.casadelaliteratura.biblioteca.dtos.auth.AuthRequest;
 import pe.gob.casadelaliteratura.biblioteca.dtos.auth.AuthResponse;
+import pe.gob.casadelaliteratura.biblioteca.dtos.auth.RefreshRequest;
 import pe.gob.casadelaliteratura.biblioteca.dtos.auth.RefreshResponse;
 import pe.gob.casadelaliteratura.biblioteca.models.persona.Usuario;
 import pe.gob.casadelaliteratura.biblioteca.repositories.persona.UsuarioRepository;
@@ -50,14 +51,14 @@ public class AuthService {
 
     }
 
-    public RefreshResponse refresh(String refreshToken) {
+    public RefreshResponse refresh(RefreshRequest request) {
 
-        String numeroDoc = jwtService.extractNumeroDoc(refreshToken);
+        String numeroDoc = jwtService.extractNumeroDoc(request.getRefreshToken());
 
         Usuario usuario = usuarioRepo.findByPersona_NumeroDoc(numeroDoc)
                 .orElseThrow(() -> new ErrorException401("Refresh token inválido."));
 
-        if (!jwtService.isTokenValid(refreshToken, usuario)) {
+        if (!jwtService.isTokenValid(request.getRefreshToken(), usuario)) {
             throw new ErrorException401("Refresh token expirado o inválido.");
         }
 

@@ -12,10 +12,10 @@ import java.time.LocalDate;
 @Builder
 public class RangoFechasRequestDto {
 
-    @NotNull(message = "La fecha desde es obligatoria.")
+    @NotNull(message = "La fecha 'desde' es obligatoria.")
     private LocalDate fechaDesde;
 
-    @NotNull(message = "La fecha hasta es obligatoria.")
+    @NotNull(message = "La fecha 'hasta' es obligatoria.")
     private LocalDate fechaHasta;
 
 }

@@ -47,7 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Usuario usuario = userRepository.findByPersona_NumeroDoc(numeroDoc)
                     .orElse(null);
 
-            if (usuario != null && jwtService.isTokenValid(jwt, usuario)) {
+            if (usuario != null
+                    && jwtService.isTokenValid(jwt, usuario)
+                    && jwtService.isAccessToken(jwt)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 usuario, null,

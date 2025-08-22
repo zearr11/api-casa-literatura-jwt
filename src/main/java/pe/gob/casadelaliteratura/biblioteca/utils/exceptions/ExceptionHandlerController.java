@@ -28,6 +28,7 @@ public class ExceptionHandlerController {
                 request.getDescription(false));
     }
 
+    /*
     @ExceptionHandler(Error2Exception400.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorMessage<String> error400Customized(Error2Exception400 exception,
@@ -38,6 +39,7 @@ public class ExceptionHandlerController {
                 exception.getDetalle()
         );
     }
+    */
 
     // Credenciales de autenticación no válidas
     @ExceptionHandler(ErrorException401.class)
@@ -117,7 +119,7 @@ public class ExceptionHandlerController {
             }
 
         } else {
-            detalles.add("El cuerpo de la solicitud no se ha definido correctamente o contiene errores de formato.");
+            detalles = null;
         }
 
         return new ErrorMessage<>(
@@ -130,10 +132,10 @@ public class ExceptionHandlerController {
     @ExceptionHandler(MultipartException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorMessage<String> handleMultipartException(MultipartException ex,
-                                                                       WebRequest request) {
+                                                         WebRequest request) {
         return new ErrorMessage<>(LocalDate.now(),
-                        "Error al procesar multipart/form-data. Validar imágenes enviadas.",
-                        request.getDescription(false));
+                "Error al procesar multipart/form-data.",
+                ex.getMessage());
     }
 
 }

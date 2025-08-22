@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface IClienteService {
 
-    // List<Cliente> getAllClientesRegular();
-    // Cliente getClienteRegularById();
     MensajeDto<String> saveOrUpdate(String codCliente, ClienteRequestDto datosCliente,
                                     MultipartFile imgDocIdentidad, MultipartFile imgRecServicio);
 

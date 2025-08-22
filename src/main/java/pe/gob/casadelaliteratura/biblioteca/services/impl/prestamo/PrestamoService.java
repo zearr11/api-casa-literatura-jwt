@@ -106,7 +106,7 @@ public class PrestamoService implements IPrestamoService {
                 if (prestamoDetalle.getEstadoDevolucion() == EstadoDevolucion.DEVOLUCION_PENDIENTE ||
                         prestamoDetalle.getEstadoDevolucion() == EstadoDevolucion.DEVOLUCION_PARCIAL)
                     throw new ErrorException409(
-                            "El cliente con codigo " + cliente.getCodCliente() +
+                            "El cliente con código " + cliente.getCodCliente() +
                             ", cuenta con un préstamo pendiente de devolución. " +
                             "No se puede continuar con la solicitud."
                     );
@@ -147,7 +147,7 @@ public class PrestamoService implements IPrestamoService {
                 if (libroCopia != null && (libroCopia.getEstado() == EstadoLibro.PRESTADO ||
                         libroCopia.getEstado() == EstadoLibro.SOLO_PARA_LECTURA_EN_SALA))
                     throw new ErrorException409(
-                            "El numero de copia del libro con codigo " +
+                            "El numero de copia del libro con código " +
                             dtPrestamo.getCodigoLibro() +
                             ", no esta habilitado para préstamos. No se puede continuar con la solicitud."
                     );
@@ -182,9 +182,9 @@ public class PrestamoService implements IPrestamoService {
             detPrestRepository.save(dtPrestamo);
         }
 
-        String msg = "Se ha registrado el préstamo al cliente con codigo " +
+        String msg = "Se ha registrado el préstamo al cliente con código " +
                 cliente.getCodCliente() +
-                ". El codigo de registro del préstamo es " + nuevoPrestamo.getCodPrestamo() + ".";
+                ". El código de registro del préstamo es " + nuevoPrestamo.getCodPrestamo() + ".";
 
         // -------------------------------------------------------------------
         entityManager.refresh(nuevoPrestamo);

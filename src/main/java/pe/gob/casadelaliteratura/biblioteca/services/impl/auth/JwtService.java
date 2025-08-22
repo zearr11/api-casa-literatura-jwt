@@ -25,6 +25,7 @@ public class JwtService {
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
                 .setSubject(usuario.getPersona().getNumeroDoc())
                 .claim("role", "ROLE_" + usuario.getRol().name())
+                .claim("token_type", "access")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_DURATION))
                 .compact();
@@ -33,7 +34,9 @@ public class JwtService {
     public String generateRefreshToken(Usuario usuario) {
         return Jwts.builder()
                 .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()), SignatureAlgorithm.HS256)
+                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
                 .setSubject(usuario.getPersona().getNumeroDoc())
+                .claim("token_type", "refresh")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_DURATION))
                 .compact();
@@ -49,6 +52,14 @@ public class JwtService {
         return (numeroDoc.equals(usuario.getPersona().getNumeroDoc()))
                 &&
                 !isTokenExpired(token); // Si el numero de documento coincide y el token no ha expirado
+    }
+
+    public boolean isAccessToken(String token) {
+        return "access".equals(extractAllClaims(token).get("token_type", String.class));
+    }
+
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(extractAllClaims(token).get("token_type", String.class));
     }
 
     private Claims extractAllClaims(String token) {

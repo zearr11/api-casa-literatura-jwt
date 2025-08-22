@@ -26,7 +26,7 @@ public class DataPersonalDto {
     private TipoDoc tipoDocumento;
 
     @NotBlank(message = "El campo 'numero de documento' es obligatorio.")
-    @Size(min = 8, max = 20, message = "El campo 'numero de documento' debe tener entre 8 y 20 carácteres.")
+    @Size(min = 8, max = 11, message = "El campo 'numero de documento' debe tener entre 8 y 11 carácteres.")
     private String numeroDoc;
 
     @NotNull(message = "El campo 'fecha de nacimiento' es obligatorio.")

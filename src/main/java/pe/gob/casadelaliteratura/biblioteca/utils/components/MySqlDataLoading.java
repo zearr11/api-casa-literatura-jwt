@@ -122,7 +122,7 @@ public class MySqlDataLoading implements CommandLineRunner {
                     SET fecha_actual = CURDATE();
                 
                     -- OBTENER LA ULTIMA FECHA VENCIMIENTO REGISTRADA EN LA TABLA RENOVACION
-                    SELECT MAX(nueva_fecha_vencimiento) INTO ultima_fecha_vencimiento_prestamo\s
+                    SELECT MAX(nueva_fecha_vencimiento) INTO ultima_fecha_vencimiento_prestamo
                 	FROM RENOVACION
                 	WHERE fk_cod_prestamo = OLD.cod_prestamo;
                 
@@ -314,26 +314,26 @@ public class MySqlDataLoading implements CommandLineRunner {
         jdbcTemplate.update("""
                 INSERT INTO libro_detalle(cod_libro_detalle, isbn, titulo, year, fk_cod_autor, fk_cod_coleccion, fk_cod_editorial)
                 VALUES
-                ('LB00001', '978-84-376-0494-7', 'La ciudad y los perros', 1963, 'AT00001', 'CC00005', 'ED00001'),
-                ('LB00002', '978-84-204-6724-6', 'La casa de los espíritus', 1982, 'AT00002', 'CC00012', 'ED00002'),
-                ('LB00003', '978-84-376-0495-4', 'Cien años de soledad', 1967, 'AT00003', 'CC00013', 'ED00003'),
-                ('LB00004', '978-84-339-1222-1', 'Ficciones', 1944, 'AT00004', 'CC00013', 'ED00004'),
-                ('LB00005', '978-607-11-2001-0', 'Pedro Páramo', 1955, 'AT00005', 'CC00012', 'ED00005'),
-                ('LB00006', '978-84-08-03759-3', 'La sombra del viento', 2001, 'AT00006', 'CC00013', 'ED00006'),
-                ('LB00007', '978-84-339-7226-3', 'La palabra del mudo', 1974, 'AT00007', 'CC00011', 'ED00007'),
-                ('LB00008', '978-84-663-4450-9', 'Las venas abiertas de América Latina', 1971, 'AT00008', 'CC00014', 'ED00008'),
-                ('LB00009', '978-84-206-3410-7', 'Los Heraldos Negros', 1919, 'AT00009', 'CC00015', 'ED00009'),
-                ('LB00010', '978-84-397-2174-1', 'Azul...', 1888, 'AT00010', 'CC00012', 'ED00010'),
-                ('LB00011', '978-84-376-0494-8', 'Conversación en La Catedral', 1969, 'AT00001', 'CC00006', 'ED00001'),
-                ('LB00012', '978-84-204-6724-7', 'Paula', 1994, 'AT00002', 'CC00011', 'ED00002'),
-                ('LB00013', '978-84-376-0495-5', 'El amor en los tiempos del cólera', 1985, 'AT00003', 'CC00013', 'ED00003'),
-                ('LB00014', '978-84-339-1222-2', 'El Aleph', 1949, 'AT00004', 'CC00013', 'ED00004'),
-                ('LB00015', '978-607-11-2001-1', 'El llano en llamas', 1953, 'AT00005', 'CC00014', 'ED00005'),
-                ('LB00016', '978-84-08-03759-4', 'El juego del ángel', 2008, 'AT00006', 'CC00013', 'ED00006'),
-                ('LB00017', '978-84-339-7226-4', 'Prosas apátridas', 1975, 'AT00007', 'CC00011', 'ED00007'),
-                ('LB00018', '978-84-663-4450-0', 'Memoria del fuego', 1986, 'AT00008', 'CC00014', 'ED00008'),
-                ('LB00019', '978-84-206-3410-8', 'Poemas humanos', 1939, 'AT00009', 'CC00015', 'ED00009'),
-                ('LB00020', '978-84-397-2174-2', 'Cantos de vida y esperanza', 1905, 'AT00010', 'CC00012', 'ED00010');
+                ('LB00001', '9788437604947', 'La ciudad y los perros', 1963, 'AT00001', 'CC00005', 'ED00001'),
+                ('LB00002', '9788420467246', 'La casa de los espíritus', 1982, 'AT00002', 'CC00012', 'ED00002'),
+                ('LB00003', '9788437604954', 'Cien años de soledad', 1967, 'AT00003', 'CC00013', 'ED00003'),
+                ('LB00004', '9788433912221', 'Ficciones', 1944, 'AT00004', 'CC00013', 'ED00004'),
+                ('LB00005', '9786071120010', 'Pedro Páramo', 1955, 'AT00005', 'CC00012', 'ED00005'),
+                ('LB00006', '9788408037593', 'La sombra del viento', 2001, 'AT00006', 'CC00013', 'ED00006'),
+                ('LB00007', '9788433972263', 'La palabra del mudo', 1974, 'AT00007', 'CC00011', 'ED00007'),
+                ('LB00008', '9788466344509', 'Las venas abiertas de América Latina', 1971, 'AT00008', 'CC00014', 'ED00008'),
+                ('LB00009', '9788420634107', 'Los Heraldos Negros', 1919, 'AT00009', 'CC00015', 'ED00009'),
+                ('LB00010', '9788439721741', 'Azul...', 1888, 'AT00010', 'CC00012', 'ED00010'),
+                ('LB00011', '9788437604948', 'Conversación en La Catedral', 1969, 'AT00001', 'CC00006', 'ED00001'),
+                ('LB00012', '9788420467247', 'Paula', 1994, 'AT00002', 'CC00011', 'ED00002'),
+                ('LB00013', '9788437604955', 'El amor en los tiempos del cólera', 1985, 'AT00003', 'CC00013', 'ED00003'),
+                ('LB00014', '9788433912222', 'El Aleph', 1949, 'AT00004', 'CC00013', 'ED00004'),
+                ('LB00015', '9786071120011', 'El llano en llamas', 1953, 'AT00005', 'CC00014', 'ED00005'),
+                ('LB00016', '9788408037594', 'El juego del ángel', 2008, 'AT00006', 'CC00013', 'ED00006'),
+                ('LB00017', '9788433972264', 'Prosas apátridas', 1975, 'AT00007', 'CC00011', 'ED00007'),
+                ('LB00018', '9788466344500', 'Memoria del fuego', 1986, 'AT00008', 'CC00014', 'ED00008'),
+                ('LB00019', '9788420634108', 'Poemas humanos', 1939, 'AT00009', 'CC00015', 'ED00009'),
+                ('LB00020', '9788439721742', 'Cantos de vida y esperanza', 1905, 'AT00010', 'CC00012', 'ED00010');
                 """);
     }
 
@@ -371,10 +371,10 @@ public class MySqlDataLoading implements CommandLineRunner {
                 ('PS00001', '2025-07-15', 'CL00001', 'DEVOLUCION_PENDIENTE', 'US00002'),
                 ('PS00002', '2025-07-27', 'CL00002', 'DEVOLUCION_PENDIENTE', 'US00002'),
                 ('PS00003', '2025-07-29', 'CL00003', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00004', '2025-06-12', 'CL00004', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00005', '2025-06-26', 'CL00005', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00006', '2025-07-10', 'CL00006', 'DEVOLUCION_PENDIENTE', 'US00002'),
-                ('PS00007', '2025-07-31', 'CL00007', 'DEVOLUCION_PENDIENTE', 'US00002');
+                ('PS00004', '2025-07-31', 'CL00004', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00005', '2025-08-01', 'CL00005', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00006', '2025-08-06', 'CL00006', 'DEVOLUCION_PENDIENTE', 'US00002'),
+                ('PS00007', '2025-08-10', 'CL00007', 'DEVOLUCION_PENDIENTE', 'US00002');
                 """);
     }
 

@@ -11,6 +11,9 @@ import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.request.Renov
 import pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.prestamo.response.PrestamoResponseDto;
 import pe.gob.casadelaliteratura.biblioteca.services.interfaces.prestamo.IPrestamoService;
 import pe.gob.casadelaliteratura.biblioteca.utils.enums.EstadoDevolucion;
+import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException400;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -23,14 +26,26 @@ public class PrestamoController {
         this.prestamoService = prestamoService;
     }
 
+    private RangoFechasRequestDto validarFechas(LocalDate fechaDesde, LocalDate fechaHasta) {
+        if ((fechaDesde != null && fechaHasta == null) || (fechaDesde == null && fechaHasta != null)) {
+            throw new ErrorException400(
+                    "Para buscar entre rango de fechas debe declarar las propiedades: fechaDesde y fechaHasta."
+            );
+        }
+        return (fechaDesde != null) ? new RangoFechasRequestDto(fechaDesde, fechaHasta) : null;
+    }
+
     // http://localhost:8080/api/v1/prestamos
     @GetMapping
     public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamos(@RequestParam(required = false)
                                                                           EstadoDevolucion estadoDevolucion,
-                                                                      @Valid @RequestBody(required = false)
-                                                                            RangoFechasRequestDto datosFecha,
+                                                                      @RequestParam(required = false)
+                                                                          LocalDate fechaDesde,
+                                                                      @RequestParam(required = false)
+                                                                          LocalDate fechaHasta,
                                                                       @RequestParam(required = false)
                                                                           Boolean conSancionesActivas) {
+        RangoFechasRequestDto datosFecha = validarFechas(fechaDesde, fechaHasta);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
                         null, null, null, estadoDevolucion, datosFecha, conSancionesActivas));
@@ -51,10 +66,13 @@ public class PrestamoController {
     public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamosPorCodCliente(@PathVariable String codCliente,
                                                                                    @RequestParam(required = false)
                                                                                         EstadoDevolucion estadoDevolucion,
-                                                                                   @Valid @RequestBody(required = false)
-                                                                                        RangoFechasRequestDto datosFecha,
+                                                                                   @RequestParam(required = false)
+                                                                                       LocalDate fechaDesde,
+                                                                                   @RequestParam(required = false)
+                                                                                       LocalDate fechaHasta,
                                                                                    @RequestParam(required = false)
                                                                                         Boolean conSancionesActivas) {
+        RangoFechasRequestDto datosFecha = validarFechas(fechaDesde, fechaHasta);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
                         null, codCliente, null, estadoDevolucion,
@@ -66,10 +84,13 @@ public class PrestamoController {
     public ResponseEntity<List<PrestamoResponseDto>> obtenerPrestamosPorCodUsuario(@PathVariable String codUsuario,
                                                                                    @RequestParam(required = false)
                                                                                        EstadoDevolucion estadoDevolucion,
-                                                                                   @Valid @RequestBody(required = false)
-                                                                                       RangoFechasRequestDto datosFecha,
+                                                                                   @RequestParam(required = false)
+                                                                                       LocalDate fechaDesde,
+                                                                                   @RequestParam(required = false)
+                                                                                       LocalDate fechaHasta,
                                                                                    @RequestParam(required = false)
                                                                                        Boolean conSancionesActivas) {
+        RangoFechasRequestDto datosFecha = validarFechas(fechaDesde, fechaHasta);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(prestamoService.getPrestamosPersonalizado(
                         null, null, codUsuario, estadoDevolucion, datosFecha, conSancionesActivas));

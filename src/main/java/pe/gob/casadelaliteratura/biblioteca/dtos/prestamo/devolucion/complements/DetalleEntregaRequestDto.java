@@ -1,6 +1,5 @@
 package pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.devolucion.complements;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +19,7 @@ public class DetalleEntregaRequestDto {
     @NotNull(message = "El número de copia es obligatorio.")
     private Integer numeroCopia;
 
-    @NotNull(message = "El tipo de entrega es obligatorio")
+    @NotNull(message = "El tipo de entrega es obligatorio.")
     private TipoEntrega tipoEntrega;
 
     @Valid

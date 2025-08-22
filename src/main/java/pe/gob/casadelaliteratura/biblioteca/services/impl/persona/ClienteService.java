@@ -19,6 +19,8 @@ import pe.gob.casadelaliteratura.biblioteca.utils.converts.PersonaConvert;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException404;
 import pe.gob.casadelaliteratura.biblioteca.utils.exceptions.errors.ErrorException409;
 import pe.gob.casadelaliteratura.biblioteca.utils.validations.ArchivoValidacion;
+import pe.gob.casadelaliteratura.biblioteca.utils.validations.ValidacionDocIden;
+
 import java.util.List;
 
 @Service
@@ -43,21 +45,24 @@ public class ClienteService implements IClienteService {
     @Override
     public MensajeDto<String> saveOrUpdate(String codCliente, ClienteRequestDto datosCliente,
                                            MultipartFile imgDocIdentidad, MultipartFile imgRecServicio) {
-        // Validacion Imagenes
-        ArchivoValidacion.validacionImg(imgDocIdentidad, "documento de identidad");
-        ArchivoValidacion.validacionImg(imgRecServicio, "recibo de servicio");
+        // Validacion Doc Identidad
+        ValidacionDocIden.validationDoc(datosCliente.getDatosPersonales().getNumeroDoc(),
+                datosCliente.getDatosPersonales().getTipoDocumento());
 
         // Carga de atributos
         Cliente cliente;
         Persona persona;
         String msg;
         ClienteProjection clienteExistente = clientRepository.findByCustomized(
-                datosCliente.getDatosPersonales().getNumeroDoc(), null, null)
+                        datosCliente.getDatosPersonales().getNumeroDoc(), null, null)
                 .orElse(null);
 
         if (codCliente == null) { // NUEVO CLIENTE
             if (clienteExistente != null)
                 throw new ErrorException409("Ya existe un cliente con el numero de documento ingresado.");
+
+            ArchivoValidacion.validacionImg(imgDocIdentidad, "documento de identidad");
+            ArchivoValidacion.validacionImg(imgRecServicio, "recibo de servicio");
 
             // Asignacion de atributos
             String urlDocIden = cloudinaryService.subirArchivoImg(imgDocIdentidad);
@@ -85,25 +90,32 @@ public class ClienteService implements IClienteService {
 
             // Busqueda de cliente y persona en bd
             Cliente clienteBusqueda = clientRepository.findById(codCliente)
-                        .orElseThrow(() ->
-                                new ErrorException404(
-                                        "No se encontró al cliente con el codigo: " + codCliente
-                                ));
-            Persona personaBusqueda = clienteBusqueda.getPersona();
+                    .orElseThrow(() ->
+                            new ErrorException404(
+                                    "No se encontró al cliente con el codigo: " + codCliente
+                            ));
 
-            // Asignacion de url's
+            Persona personaBusqueda = clienteBusqueda.getPersona();
             String urlDocIden = clienteBusqueda.getUrlDocIdentidad();
             String urlRecServ = clienteBusqueda.getUrlRecServicio();
-            boolean docIdenSonIguales = cloudinaryService.sonImagenesIguales(imgDocIdentidad, urlDocIden);
-            boolean recServSonIguales = cloudinaryService.sonImagenesIguales(imgRecServicio, urlRecServ);
 
-            if (!docIdenSonIguales){
-                cloudinaryService.eliminarArchivo(urlDocIden);
-                urlDocIden = cloudinaryService.subirArchivoImg(imgDocIdentidad);
+            if (imgDocIdentidad != null) {
+                ArchivoValidacion.validacionImg(imgDocIdentidad, "documento de identidad");
+
+                boolean docIdenSonIguales = cloudinaryService.sonImagenesIguales(imgDocIdentidad, urlDocIden);
+                if (!docIdenSonIguales){
+                    cloudinaryService.eliminarArchivo(urlDocIden);
+                    urlDocIden = cloudinaryService.subirArchivoImg(imgDocIdentidad);
+                }
             }
-            if (!recServSonIguales){
-                cloudinaryService.eliminarArchivo(urlRecServ);
-                urlRecServ = cloudinaryService.subirArchivoImg(imgRecServicio);
+            if (imgRecServicio != null) {
+                ArchivoValidacion.validacionImg(imgRecServicio, "recibo de servicio");
+
+                boolean recServSonIguales = cloudinaryService.sonImagenesIguales(imgRecServicio, urlRecServ);
+                if (!recServSonIguales){
+                    cloudinaryService.eliminarArchivo(urlRecServ);
+                    urlRecServ = cloudinaryService.subirArchivoImg(imgRecServicio);
+                }
             }
 
             // Asignacion de nuevos atributos a las entidades actuales

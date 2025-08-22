@@ -1,6 +1,5 @@
 package pe.gob.casadelaliteratura.biblioteca.dtos.prestamo.devolucion;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

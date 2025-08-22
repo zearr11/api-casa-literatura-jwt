@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.gob.casadelaliteratura.biblioteca.dtos.auth.AuthRequest;
 import pe.gob.casadelaliteratura.biblioteca.dtos.auth.AuthResponse;
+import pe.gob.casadelaliteratura.biblioteca.dtos.auth.RefreshRequest;
 import pe.gob.casadelaliteratura.biblioteca.dtos.auth.RefreshResponse;
 import pe.gob.casadelaliteratura.biblioteca.services.impl.auth.AuthService;
 
@@ -27,8 +28,8 @@ public class AuthController {
 
     // http://localhost:8080/api/v1/refresh
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refresh(@RequestParam String refreshToken) {
-        return ResponseEntity.status(HttpStatus.OK).body(authService.refresh(refreshToken));
+    public ResponseEntity<RefreshResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(authService.refresh(request));
     }
 
 }
